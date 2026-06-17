@@ -2,419 +2,954 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <title>VIP100</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>HGZY VIP AI - SIGNAL PANEL</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+
     <style>
-        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
-        
-        /* Full view container to clearly see the game screen */
-        .iframe-container {
-            position: absolute;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+        }
+
+        #gameFrame {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            display: block;
+        }
+
+        /* ─── FALLING DOTS CANVAS ─── */
+        #dotCanvas {
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        /* Game iframe logic */
-        iframe { 
-            width: 100%; 
-            height: 100%; 
-            border: none; 
-            display: block;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-        }
-        
-        /* Ultra-premium RGB neon animation for the main panel border */
-        @keyframes ultraRgbGlow {
-            0% { border-color: #00ffcc; box-shadow: 0 0 18px #00ffcc, inset 0 0 10px rgba(0, 255, 204, 0.4); }
-            25% { border-color: #ff007f; box-shadow: 0 0 18px #ff007f, inset 0 0 10px rgba(255, 0, 127, 0.4); }
-            50% { border-color: #ffd700; box-shadow: 0 0 18px #ffd700, inset 0 0 10px rgba(255, 215, 0, 0.4); }
-            75% { border-color: #39ff14; box-shadow: 0 0 18px #39ff14, inset 0 0 10px rgba(57, 255, 20, 0.4); }
-            100% { border-color: #00ffcc; box-shadow: 0 0 18px #00ffcc, inset 0 0 10px rgba(0, 255, 204, 0.4); }
+            width: 100vw;
+            height: 100vh;
+            z-index: 99998;
+            pointer-events: none;
         }
 
-        /* Panel overlay design */
-        .box { 
-            width: 220px; 
-            height: auto;
-            background: linear-gradient(135deg, rgba(12, 6, 24, 0.98), rgba(5, 2, 10, 0.99));
-            border: 2.5px solid #00ffcc; 
-            border-radius: 20px; 
-            color: #fff; text-align: center; padding: 12px 16px; 
-            position: fixed; top: 120px; right: 10px;
-            z-index: 9999; cursor: grab; backdrop-filter: blur(25px); 
-            box-sizing: border-box;
-            animation: ultraRgbGlow 6s infinite linear;
-            touch-action: none; 
+        /* ─── OFFLINE OVERLAY ─── */
+        #offline-overlay {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 0, 0.95);
+            color: #fff;
+            padding: 14px 32px;
+            border-radius: 60px;
+            z-index: 100000;
+            font-weight: 900;
+            font-size: 16px;
+            letter-spacing: 2px;
+            display: none;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(6px);
+            text-transform: uppercase;
+            font-family: 'Orbitron', monospace;
+        }
+
+        /* ─── DRAGGABLE PANEL (BALL STYLE) ─── */
+        #signalPanel {
+            width: 200px;
+            position: fixed;
+            z-index: 99999;
+            cursor: grab;
+            touch-action: none;
+            display: none;
+            top: 70px;
+            left: 16px;
+        }
+
+        #signalPanel:active {
+            cursor: grabbing;
+        }
+
+        .glass-panel {
+            background: rgba(6, 10, 20, 0.96);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 28px;
+            padding: 14px 12px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 242, 255, 0.06) inset;
+            position: relative;
+            overflow: hidden;
+            transition: opacity 0.4s ease;
+        }
+
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: -60%;
+            left: -60%;
+            width: 220%;
+            height: 220%;
+            background: conic-gradient(from 0deg, transparent, var(--neon-cyan, #00f2ff), transparent, var(--neon-pink, #ff00ea), transparent);
+            animation: rotateBorder 8s linear infinite;
+            z-index: -1;
+            opacity: 0.25;
+        }
+
+        @keyframes rotateBorder {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ─── AUTH OVERLAY ─── */
+        #auth-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 30%, #0b1428, #02040a);
+            z-index: 1000;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
-        }
-        
-        .box:active { cursor: grabbing; }
-
-        /* Round messenger style photo container */
-        .avatar-container {
-            position: relative;
-            width: 70px;
-            height: 70px;
-            margin-top: 2px;
+            justify-content: center;
+            border-radius: 28px;
+            padding: 14px;
         }
 
-        .panel-banner {
+        .login-card {
             width: 100%;
-            height: 100%;
-            border-radius: 50%; 
-            object-fit: cover;
-            border: 2px solid #ff007f;
-            box-shadow: 0 0 12px rgba(255, 0, 127, 0.6);
+            padding: 16px 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 18px;
+            border: 1px solid rgba(0, 242, 255, 0.15);
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .login-card .lock-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
             display: block;
         }
 
-        /* Premium header style */
+        .login-card label {
+            color: #00f2ff;
+            font-size: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: block;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+        }
+
+        #passInput {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #2a2a3a;
+            padding: 8px 8px;
+            color: #fff;
+            border-radius: 10px;
+            text-align: center;
+            width: 100%;
+            font-size: 12px;
+            font-weight: 700;
+            outline: none;
+            margin-bottom: 10px;
+            transition: 0.3s;
+            letter-spacing: 1px;
+            font-family: 'Orbitron', monospace;
+        }
+
+        #passInput:focus {
+            border-color: #00f2ff;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.12);
+        }
+
+        #loginBtn {
+            background: linear-gradient(135deg, #00f2ff, #0066ff);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 900;
+            font-size: 10px;
+            color: #000;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            box-shadow: 0 4px 18px rgba(0, 242, 255, 0.3);
+            transition: 0.25s;
+            width: 100%;
+            font-family: 'Orbitron', monospace;
+        }
+
+        #loginBtn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 24px rgba(0, 242, 255, 0.4);
+        }
+
+        /* ─── PANEL HEADER ─── */
         .panel-header {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            gap: 6px;
-            width: 100%;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            padding-bottom: 6px;
+            margin-bottom: 8px;
         }
 
-        .premium-logo-area {
-            position: relative;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* VIP Server badge */
-        .server-badge {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            background: rgba(255, 215, 0, 0.07);
-            border: 1px solid #ffd700;
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-size: 9px;
+        .brand {
             font-weight: 900;
-            color: #ffd700;
+            font-size: 8px;
+            color: #00f2ff;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
-            width: 100%;
-            box-sizing: border-box;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+        }
+
+        .brand span {
+            color: #ff00ea;
+        }
+
+        #network-status {
+            font-size: 6px;
+            color: #00e676;
             letter-spacing: 0.5px;
-        }
-        
-        .vpn-dot {
-            width: 5px;
-            height: 5px;
-            background-color: #39ff14;
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 5px #39ff14;
-        }
-
-        /* Login layout */
-        .login-section {
-            width: 100%;
             display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        #loginPart input { 
-            width: 100%; padding: 7px; background: #05050a; border: 1.2px solid #ff007f; 
-            border-radius: 6px; color: #fff; font-size: 12px; text-align: center; 
-            outline: none; box-sizing: border-box;
-            transition: 0.3s;
-        }
-        #loginPart input:focus {
-            border-color: #00ffcc;
-            box-shadow: 0 0 6px #00ffcc;
-        }
-        .login-btn { 
-            width: 100%; padding: 8px; background: linear-gradient(45deg, #00ffcc, #ff007f); color: #fff; 
-            border: none; border-radius: 6px; font-weight: 900; cursor: pointer; 
-            font-size: 11px; text-transform: uppercase; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-        }
-
-        /* Signal display interior panel */
-        #appPart { 
-            display: flex; 
-            flex-direction: column;
-            align-items: center; 
-            gap: 6px;
-            width: 100%; 
-        }
-        
-        .period-top-box {
-            background: rgba(255, 255, 255, 0.03); 
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px; 
-            padding: 5px; 
-            width: 100%;
-            text-align: center;
-            box-sizing: border-box;
-        }
-        .period-label { font-size: 9px; color: #bbb; text-transform: uppercase; display: block; font-weight: 600; letter-spacing: 0.3px; }
-        
-        #periodID { 
-            font-size: 16px; 
-            font-weight: 950; 
-            display: block; 
-            margin-top: 2px; 
-            word-break: break-all;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Neon text typography colors */
-        .p-cyan { color: #00ffcc; text-shadow: 0 0 4px #00ffcc; }
-        .p-pink { color: #ff007f; text-shadow: 0 0 4px #ff007f; }
-        .p-gold { color: #ffd700; text-shadow: 0 0 4px #ffd700; }
-        .p-green { color: #39ff14; text-shadow: 0 0 4px #39ff14; }
-
-        /* Timer display */
-        .timer-container { text-align: center; width: 100%; }
-        .timer-txt { font-size: 15px; color: #ffff00; font-weight: 900; text-shadow: 0 0 5px #ffff00; }
-        
-        /* Signal output screen layout */
-        #signalContainer {
-            display: flex;
-            flex-direction: column;
             align-items: center;
             gap: 3px;
-            width: 100%;
-            padding-bottom: 2px;
+            font-weight: 700;
         }
 
-        .signal-txt { 
-            font-size: 34px; 
-            font-weight: 950; 
-            text-transform: uppercase; 
-            line-height: 1.1; 
+        #network-status .dot {
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #00e676;
+            animation: blink 1.2s infinite;
+        }
+
+        @keyframes blink {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.15;
+            }
+        }
+
+        /* ─── STATS GRID ─── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 2px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .stat-label {
+            font-size: 5px;
+            text-transform: uppercase;
+            color: #7a7a8a;
             letter-spacing: 1px;
+            display: block;
+            margin-bottom: 1px;
+            font-weight: 700;
         }
 
-        .res-big { color: #00ffcc; text-shadow: 0 0 16px #00ffcc, 0 0 24px rgba(0, 255, 204, 0.6); }
-        .res-small { color: #ff007f; text-shadow: 0 0 16px #ff007f, 0 0 24px rgba(255, 0, 127, 0.6); }
-        .processing { font-size: 14px; color: #ffea00; animation: blink 0.4s infinite; text-shadow: 0 0 6px #ffea00; display: block; font-weight: 950; }
-        
-        @keyframes blink { 50% { opacity: 0.3; } }
-        .hidden { display: none !important; }
+        .stat-value {
+            font-size: 12px;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.12);
+        }
+
+        /* ─── PREDICTION BOX ─── */
+        .prediction-box {
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.6), rgba(10, 15, 30, 0.8));
+            border-radius: 16px;
+            padding: 10px 4px 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            margin-bottom: 8px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prediction-box::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.03), transparent 70%);
+            pointer-events: none;
+        }
+
+        #box-status {
+            font-size: 6px;
+            color: #00f2ff;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+            position: relative;
+            z-index: 1;
+            font-weight: 700;
+        }
+
+        #prediction-text {
+            font-size: 32px;
+            font-weight: 950;
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 1;
+            line-height: 1.1;
+            text-shadow: 0 0 30px currentColor;
+            transition: all 0.3s ease;
+        }
+
+        #prediction-text.big-text {
+            color: #ff1100;
+            text-shadow: 0 0 40px rgba(255, 17, 0, 0.4), 0 0 80px rgba(255, 17, 0, 0.15);
+        }
+
+        #prediction-text.small-text {
+            color: #ffea00;
+            text-shadow: 0 0 40px rgba(255, 234, 0, 0.3), 0 0 80px rgba(255, 234, 0, 0.1);
+        }
+
+        #prediction-text.analyzing {
+            font-size: 12px !important;
+            color: #00f2ff !important;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.25);
+            animation: pulseText 0.9s infinite;
+        }
+
+        @keyframes pulseText {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.15;
+            }
+        }
+
+        /* ─── DETAILS ROW ─── */
+        .details-row {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 5px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding-top: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-item .stat-label {
+            font-size: 5px;
+            color: #7a7a8a;
+        }
+
+        .val {
+            font-weight: 900;
+            font-size: 14px;
+            color: #ffd700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.08);
+        }
+
+        #color-display {
+            font-weight: 900;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        /* ─── PROGRESS BAR ─── */
+        .meter-bg {
+            height: 3px;
+            background: #11161f;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00f2ff, #ff00ea);
+            transition: width 0.4s linear;
+            border-radius: 6px;
+        }
+
+        /* ─── HISTORY DOTS ─── */
+        .history-list {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            flex-wrap: wrap;
+            min-height: 20px;
+        }
+
+        .h-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 7px;
+            font-weight: 900;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .h-dot.bg-red {
+            background: #ff1744;
+        }
+        .h-dot.bg-green {
+            background: #00e676;
+        }
+        .h-dot.bg-violet {
+            background: #b388ff;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 520px) {
+            #signalPanel {
+                width: 170px;
+                top: 50px;
+                left: 10px;
+            }
+            .glass-panel {
+                padding: 10px 8px 8px;
+                border-radius: 22px;
+            }
+            #prediction-text {
+                font-size: 26px;
+            }
+            .stat-value {
+                font-size: 10px;
+            }
+            .val {
+                font-size: 12px;
+            }
+            .h-dot {
+                width: 15px;
+                height: 15px;
+                font-size: 6px;
+            }
+            .brand {
+                font-size: 7px;
+            }
+            .login-card {
+                padding: 12px 10px;
+            }
+            #passInput {
+                font-size: 10px;
+                padding: 6px 6px;
+            }
+            #loginBtn {
+                font-size: 8px;
+                padding: 6px 12px;
+            }
+            #offline-overlay {
+                font-size: 12px;
+                padding: 10px 20px;
+            }
+            #prediction-text.analyzing {
+                font-size: 10px !important;
+            }
+            .stat-label {
+                font-size: 4px;
+            }
+            #box-status {
+                font-size: 5px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #signalPanel {
+                width: 150px;
+                top: 40px;
+                left: 6px;
+            }
+            #prediction-text {
+                font-size: 20px;
+            }
+            .stat-value {
+                font-size: 9px;
+            }
+            .val {
+                font-size: 10px;
+            }
+            .h-dot {
+                width: 13px;
+                height: 13px;
+                font-size: 5px;
+            }
+            .glass-panel {
+                padding: 8px 6px 6px;
+                border-radius: 18px;
+            }
+            .brand {
+                font-size: 6px;
+            }
+            .stats-grid {
+                gap: 3px;
+            }
+            .stat-card {
+                padding: 3px 2px;
+                border-radius: 8px;
+            }
+            .prediction-box {
+                padding: 6px 3px 5px;
+                min-height: 60px;
+                border-radius: 12px;
+            }
+            #prediction-text.analyzing {
+                font-size: 8px !important;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="iframe-container">
-        <iframe src="https://hgnice.cc/#/register?invitationCode=511711502736"></iframe>
+    <!-- ─── FALLING DOTS CANVAS ─── -->
+    <canvas id="dotCanvas"></canvas>
+
+    <!-- ─── OFFLINE OVERLAY ─── -->
+    <div id="offline-overlay">⚠ NO DATA CONNECTION</div>
+
+    <!-- ─── GAME IFRAME ─── -->
+    <iframe id="gameFrame" src="https://hgnice.cc/#/register?invitationCode=511711502736"></iframe>
+
+    <!-- ─── DRAGGABLE SIGNAL PANEL ─── -->
+    <div id="signalPanel">
+        <div class="glass-panel">
+
+            <!-- ─── AUTH OVERLAY ─── -->
+            <div id="auth-overlay">
+                <div class="login-card">
+                    <span class="lock-icon">🔐</span>
+                    <label>Access Terminal</label>
+                    <input type="password" id="passInput" placeholder="PASSWORD" autocomplete="off" />
+                    <button id="loginBtn">UNLOCK AI</button>
+                </div>
+            </div>
+
+            <!-- ─── HEADER ─── -->
+            <div class="panel-header">
+                <div class="brand">HGZY <span>VIP</span></div>
+                <div id="network-status">
+                    <span class="dot"></span> LIVE
+                </div>
+            </div>
+
+            <!-- ─── STATS ─── -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">PERIOD</span>
+                    <span id="period-display" class="stat-value">----</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">NEXT</span>
+                    <span id="timer-display" class="stat-value">30</span>
+                </div>
+            </div>
+
+            <!-- ─── PREDICTION BOX ─── -->
+            <div class="prediction-box">
+                <span id="box-status" class="stat-label" style="color:#00f2ff;">WAITING</span>
+                <div id="prediction-text" class="analyzing">READY</div>
+                <div class="details-row">
+                    <div class="detail-item">
+                        <span class="stat-label">🕷</span>
+                        <span id="num-display" class="val">--</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="stat-label">🕷</span>
+                        <span id="color-display" class="val" style="color:#888;">---</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── PROGRESS ─── -->
+            <div class="meter-bg">
+                <div id="progress-bar" class="meter-fill"></div>
+            </div>
+
+            <!-- ─── HISTORY ─── -->
+            <div id="history-row" class="history-list"></div>
+
+        </div>
     </div>
 
-    <div class="box" id="dragBox">
-        
-        <div class="avatar-container">
-            <img src="https://i.postimg.cc/WtvjQF1p/image.png" alt="Quantum Avatar" class="panel-banner">
-        </div>
-        
-        <div class="panel-header">
-            <div class="premium-logo-area">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z" fill="#00ffcc"/>
-                    <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="#ff007f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="server-badge">
-                <span>SG QUANTUM</span>
-                <div class="vpn-dot"></div>
-            </div>
-        </div>
-
-        <div id="loginPart" class="login-section">
-            <input type="password" id="passInput" placeholder="Password">
-            <button class="login-btn" onclick="checkPass()">Login</button>
-        </div>
-
-        <div id="appPart" class="hidden">
-            <div class="period-top-box">
-                <span class="period-label">Live Period</span>
-                <span id="periodID">....</span>
-            </div>
-            
-            <div class="timer-container">
-                <div class="timer-txt"><span id="timer">--</span>s</div>
-            </div>
-            
-            <div id="signalContainer">
-                <div class="signal-txt" id="prediction">WAIT</div>
-            </div>
-        </div>
-    </div>
+    <!-- ─── FIREBASE SDK ─── -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
 
     <script>
-        // Firebase Configuration
+        // ─── FIREBASE CONFIG ───
         const firebaseConfig = {
-            apiKey: "AIzaSyA4MXyCyvpAL8NQ23j3TWxiszPofWInVA",
-            authDomain: "wingo-ai-624fb.firebaseapp.com",
-            databaseURL: "https://wingo-ai-624fb-default-rtdb.firebaseio.com",
-            projectId: "wingo-ai-624fb",
-            appId: "1:266167882150:web:7f0f83606dfd4bcd8aff67"
+            apiKey: "AIzaSyBPBQOeApFZQwGX8G4mZxhY5C2jjN6VWmU",
+            authDomain: "dkwin-panel-ai.firebaseapp.com",
+            databaseURL: "https://dkwin-panel-ai-default-rtdb.firebaseio.com",
+            projectId: "dkwin-panel-ai",
+            storageBucket: "dkwin-panel-ai.firebasestorage.app",
+            messagingSenderId: "925573387640",
+            appId: "1:925573387640:web:8faf648b0b89933c89e48d",
+            measurementId: "G-X3ZFCRWEH8"
         };
-        firebase.initializeApp(firebaseConfig);
-        
-        let lastP = null, _active = false;
-        const mainPanel = document.getElementById('dragBox');
 
-        // Function to check active internet connectivity
-        function checkInternetConnection() {
-            if (navigator.onLine) {
-                // Remove hidden class if internet is connected
-                mainPanel.classList.remove('hidden');
-            } else {
-                // Hide panel completely if there is no internet data connection
-                mainPanel.classList.add('hidden');
-            }
+        let firebaseReady = false;
+        let database = null;
+
+        try {
+            const app = firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            firebaseReady = true;
+            console.log('🔥 Firebase connected.');
+        } catch (err) {
+            console.warn('⚠ Firebase init error:', err);
+            firebaseReady = false;
         }
 
-        // Event listeners to handle real-time internet status updates
-        window.addEventListener('online', checkInternetConnection);
-        window.addEventListener('offline', checkInternetConnection);
-        
-        // Initial execution check on load
-        checkInternetConnection();
+        // ─── FALLING DOTS ───
+        (function initDots() {
+            const canvas = document.getElementById('dotCanvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            const dots = [];
+            const DOT_COUNT = 35;
+            const colors = ['#ff1744', '#00e676', '#b388ff', '#ffea00', '#00f2ff', '#ff9100'];
 
-        function checkPass() {
-            if (document.getElementById('passInput').value.trim() === "VIP100") {
-                document.getElementById('loginPart').classList.add('hidden'); 
-                document.getElementById('appPart').classList.remove('hidden'); 
-                _active = true;
-                setInterval(loop, 1000);
-                setInterval(fetchData, 2000);
-            } else { 
-                alert("❌ Wrong Password!"); 
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
             }
-        }
+            window.addEventListener('resize', resize);
+            resize();
 
-        function renderRgbPeriod(periodStr) {
-            if (!periodStr || periodStr === "....") return "....";
-            const classes = ["p-cyan", "p-pink", "p-gold", "p-green"];
-            let htmlResult = "";
-            for (let i = 0; i < periodStr.length; i++) {
-                let cls = classes[i % classes.length];
-                if (i >= periodStr.length - 4) {
-                    htmlResult += `<span class="${cls}">${periodStr[i]}</span>`;
+            class Dot {
+                constructor() {
+                    this.reset();
+                    this.y = Math.random() * height - height;
+                }
+                reset() {
+                    this.x = Math.random() * width;
+                    this.y = -10 - Math.random() * 80;
+                    this.radius = 3 + Math.random() * 6;
+                    this.speed = 0.8 + Math.random() * 1.8;
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                    this.alpha = 0.4 + Math.random() * 0.6;
+                    this.wobble = Math.random() * 0.03;
+                    this.phase = Math.random() * Math.PI * 2;
+                }
+                update() {
+                    this.y += this.speed;
+                    this.x += Math.sin(this.phase) * this.wobble;
+                    this.phase += 0.02;
+                    if (this.y > height + 20) this.reset();
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.globalAlpha = this.alpha * 0.7;
+                    ctx.fill();
+                    ctx.shadowColor = this.color;
+                    ctx.shadowBlur = 12;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            for (let i = 0; i < DOT_COUNT; i++) {
+                const d = new Dot();
+                d.y = Math.random() * height;
+                dots.push(d);
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                for (const dot of dots) {
+                    dot.update();
+                    dot.draw();
+                }
+                requestAnimationFrame(animate);
+            }
+            animate();
+        })();
+
+        // ─── MAIN APPLICATION ───
+        (function() {
+            'use strict';
+
+            const panel = document.getElementById('signalPanel');
+            const offlineMsg = document.getElementById('offline-overlay');
+            const authOverlay = document.getElementById('auth-overlay');
+            const passInput = document.getElementById('passInput');
+            const loginBtn = document.getElementById('loginBtn');
+
+            const periodDisplay = document.getElementById('period-display');
+            const timerDisplay = document.getElementById('timer-display');
+            const progressBar = document.getElementById('progress-bar');
+            const predictionText = document.getElementById('prediction-text');
+            const boxStatus = document.getElementById('box-status');
+            const numDisplay = document.getElementById('num-display');
+            const colorDisplay = document.getElementById('color-display');
+            const historyRow = document.getElementById('history-row');
+            const netStatus = document.getElementById('network-status');
+
+            const ACCESS_KEY = 'VIP100';
+            const CYCLE_TIME = 30;
+            const MAX_HISTORY = 10;
+
+            let isLoggedIn = false;
+            let lastPeriod = '';
+            let isOnline = true;
+
+            function checkNetwork() {
+                const online = navigator.onLine;
+                isOnline = online;
+                if (online && isLoggedIn) {
+                    panel.style.display = 'block';
+                    offlineMsg.style.display = 'none';
+                    netStatus.innerHTML = '<span class="dot"></span> LIVE';
+                    netStatus.style.color = '#00e676';
+                } else if (!online) {
+                    panel.style.display = 'none';
+                    offlineMsg.style.display = 'block';
+                    netStatus.innerHTML = '● OFFLINE';
+                    netStatus.style.color = '#ff1744';
+                } else if (online && !isLoggedIn) {
+                    panel.style.display = 'block';
+                    offlineMsg.style.display = 'none';
+                    netStatus.innerHTML = '<span class="dot"></span> LIVE';
+                    netStatus.style.color = '#00e676';
+                }
+            }
+
+            window.addEventListener('online', checkNetwork);
+            window.addEventListener('offline', checkNetwork);
+
+            function validateKey() {
+                const val = passInput.value.trim();
+                if (val === ACCESS_KEY) {
+                    isLoggedIn = true;
+                    authOverlay.style.display = 'none';
+                    checkNetwork();
+                    if (isOnline) panel.style.display = 'block';
+                    document.getElementById('gameFrame').focus();
+                    loadHistoryFromFirebase();
                 } else {
-                    htmlResult += `<span>${periodStr[i]}</span>`;
+                    alert('⛔ ACCESS DENIED');
+                    passInput.value = '';
+                    passInput.focus();
                 }
             }
-            return htmlResult;
-        }
 
-        async function fetchData() {
-            // Abort background operations if offline
-            if (!navigator.onLine) return;
+            loginBtn.addEventListener('click', validateKey);
+            passInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') validateKey();
+            });
 
-            try {
-                const res = await fetch("https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?r=" + Date.now());
-                const json = await res.json();
-                if (json.data?.list.length > 0) {
-                    lastP = (BigInt(json.data.list[0].issueNumber) + 1n).toString();
+            function setAnalyzing() {
+                predictionText.textContent = 'SCANNING…';
+                predictionText.className = 'analyzing';
+                boxStatus.textContent = 'AI ANALYZING…';
+                numDisplay.textContent = '--';
+                colorDisplay.textContent = '---';
+                colorDisplay.style.color = '#888';
+            }
+
+            function setSignal(isBig, num1, num2, colorName, colorHex, colorClass) {
+                predictionText.textContent = isBig ? 'BIG' : 'SMALL';
+                predictionText.className = isBig ? 'big-text' : 'small-text';
+                boxStatus.textContent = '🎯 SIGNAL';
+                numDisplay.textContent = num1 + ',' + num2;
+                colorDisplay.textContent = colorName;
+                colorDisplay.style.color = colorHex;
+
+                const dot = document.createElement('div');
+                dot.className = 'h-dot ' + colorClass;
+                dot.textContent = num1;
+                historyRow.prepend(dot);
+                while (historyRow.children.length > MAX_HISTORY) {
+                    historyRow.removeChild(historyRow.lastChild);
                 }
-            } catch (e) { 
+
+                saveSignalToFirebase({
+                    period: periodDisplay.textContent,
+                    prediction: isBig ? 'BIG' : 'SMALL',
+                    num1: num1,
+                    num2: num2,
+                    color: colorName,
+                    colorHex: colorHex,
+                    colorClass: colorClass,
+                    timestamp: Date.now()
+                });
+            }
+
+            function saveSignalToFirebase(data) {
+                if (!firebaseReady || !isLoggedIn) return;
+                try {
+                    const ref = database.ref('signals/' + data.period);
+                    ref.set(data).catch(err => console.warn('Save error:', err));
+                } catch (e) { console.warn('Save exception:', e); }
+            }
+
+            function loadHistoryFromFirebase() {
+                if (!firebaseReady || !isLoggedIn) return;
+                try {
+                    const ref = database.ref('signals');
+                    ref.orderByKey().limitToLast(MAX_HISTORY).once('value', (snapshot) => {
+                        const signals = [];
+                        snapshot.forEach((child) => signals.push(child.val()));
+                        signals.reverse();
+                        historyRow.innerHTML = '';
+                        signals.forEach((sig) => {
+                            const dot = document.createElement('div');
+                            dot.className = 'h-dot ' + (sig.colorClass || 'bg-red');
+                            dot.textContent = sig.num1 || '?';
+                            historyRow.appendChild(dot);
+                        });
+                        while (historyRow.children.length > MAX_HISTORY) {
+                            historyRow.removeChild(historyRow.lastChild);
+                        }
+                        console.log('📜 Loaded ' + signals.length + ' signals.');
+                    }).catch(err => console.warn('Load error:', err));
+                } catch (e) { console.warn('Load exception:', e); }
+            }
+
+            function runEngine() {
+                if (!isLoggedIn || !isOnline) return;
+
                 const now = new Date();
-                const totalSeconds = Math.floor(now.getTime() / 1000);
-                lastP = Math.floor(totalSeconds / 60).toString(); 
+                const sec = now.getSeconds();
+                const remaining = CYCLE_TIME - (sec % CYCLE_TIME);
+
+                const totalSec = (now.getHours() * 3600) + (now.getMinutes() * 60) + sec;
+                const periodIdx = Math.floor(totalSec / CYCLE_TIME) + 1;
+                const periodStr = String(periodIdx).padStart(5, '0');
+
+                timerDisplay.textContent = remaining;
+                periodDisplay.textContent = periodStr;
+                const progress = ((CYCLE_TIME - remaining) / CYCLE_TIME) * 100;
+                progressBar.style.width = Math.min(100, progress) + '%';
+
+                if (remaining <= 6 && remaining > 0) {
+                    setAnalyzing();
+                }
+
+                if (periodStr !== lastPeriod && remaining === CYCLE_TIME) {
+                    lastPeriod = periodStr;
+                    generateSignal();
+                }
             }
-        }
 
-        function analyzeQuantumSignal(period) {
-            let hash1 = 0; 
-            const seed1 = period + "DKWIN_SG_SERVER_SECURE_2026_1M_NUM_A";
-            
-            for (let i = 0; i < seed1.length; i++) {
-                hash1 = ((hash1 << 5) - hash1) + seed1.charCodeAt(i);
-                hash1 |= 0;
+            function generateSignal() {
+                const isBig = Math.random() < 0.60;
+                let pool = isBig ? [5, 6, 7, 8, 9] : [0, 1, 2, 3, 4];
+                const idx1 = Math.floor(Math.random() * pool.length);
+                let n1 = pool[idx1];
+                pool.splice(idx1, 1);
+                const idx2 = Math.floor(Math.random() * pool.length);
+                let n2 = pool[idx2];
+
+                let colorName, colorHex, colorClass;
+                if (n1 === 0 || n1 === 5) {
+                    colorName = 'VIOLET';
+                    colorHex = '#b388ff';
+                    colorClass = 'bg-violet';
+                } else if (n1 % 2 === 0) {
+                    colorName = 'RED';
+                    colorHex = '#ff1744';
+                    colorClass = 'bg-red';
+                } else {
+                    colorName = 'GREEN';
+                    colorHex = '#00e676';
+                    colorClass = 'bg-green';
+                }
+
+                setSignal(isBig, n1, n2, colorName, colorHex, colorClass);
             }
-            
-            let num1 = Math.abs(hash1) % 10;
-            let sizeResult = (num1 >= 5) ? "BIG" : "SMALL";
-            return { size: sizeResult };
-        }
 
-        function loop() {
-            if (!_active || !navigator.onLine) return;
-            const now = new Date();
-            const sec = now.getSeconds();
-            
-            const pBox = document.getElementById('periodID');
-            if(lastP) {
-                pBox.innerHTML = renderRgbPeriod(lastP);
-            } else {
-                pBox.innerText = "....";
+            /* ─── DRAG ─── */
+            let isDragging = false;
+            let startX = 0,
+                startY = 0,
+                offsetX = 0,
+                offsetY = 0;
+
+            function onDragStart(e) {
+                const target = e.target;
+                if (target.tagName === 'INPUT' || target.tagName === 'BUTTON') return;
+                const touch = e.type === 'touchstart' ? e.touches[0] : e;
+                startX = touch.clientX - offsetX;
+                startY = touch.clientY - offsetY;
+                isDragging = true;
+                panel.style.cursor = 'grabbing';
             }
-            
-            let rem = 60 - sec;
-            if (rem === 60) rem = 0; 
-            
-            document.getElementById('timer').innerText = rem < 10 ? "0" + rem : rem;
 
-            const sigBox = document.getElementById('prediction');
-            
-            if (rem <= 5 || rem === 0) {
-                sigBox.innerHTML = '<span class="processing">GENERATING...</span>';
-            } else {
-                const result = analyzeQuantumSignal(lastP || "0");
-                sigBox.innerHTML = `<span class="res-${result.size.toLowerCase()}">${result.size}</span>`;
-            }
-        }
-
-        // Smooth dragging logic
-        const box = document.getElementById("dragBox");
-        let active = false, currentX = 0, currentY = 0, initialX = 0, initialY = 0;
-
-        function dragStart(e) {
-            if(e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('svg') || e.target.classList.contains('vpn-dot') || e.target.closest('#periodID') || e.target.classList.contains('panel-banner')) return;
-            
-            const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
-            const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
-            
-            initialX = clientX - currentX;
-            initialY = clientY - currentY;
-            active = true;
-        }
-
-        function dragEnd() { active = false; }
-
-        function drag(e) {
-            if (active) {
+            function onDragMove(e) {
+                if (!isDragging) return;
                 e.preventDefault();
-                const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
-                const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-                
-                currentX = clientX - initialX;
-                currentY = clientY - initialY;
-                
-                box.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                const touch = e.type === 'touchmove' ? e.touches[0] : e;
+                offsetX = touch.clientX - startX;
+                offsetY = touch.clientY - startY;
+                panel.style.transform = 'translate3d(' + offsetX + 'px, ' + offsetY + 'px, 0)';
             }
-        }
 
-        window.addEventListener("mousedown", dragStart);
-        window.addEventListener("mouseup", dragEnd);
-        window.addEventListener("mousemove", drag);
-        window.addEventListener("touchstart", dragStart, { passive: false });
-        window.addEventListener("touchend", dragEnd);
-        window.addEventListener("touchmove", drag, { passive: false });
+            function onDragEnd() {
+                isDragging = false;
+                panel.style.cursor = 'grab';
+            }
+
+            panel.addEventListener('mousedown', onDragStart);
+            document.addEventListener('mousemove', onDragMove);
+            document.addEventListener('mouseup', onDragEnd);
+            panel.addEventListener('touchstart', onDragStart, { passive: true });
+            document.addEventListener('touchmove', onDragMove, { passive: false });
+            document.addEventListener('touchend', onDragEnd, { passive: true });
+
+            /* ─── INIT ─── */
+            checkNetwork();
+            setInterval(runEngine, 1000);
+            setTimeout(runEngine, 300);
+            if (navigator.onLine) panel.style.display = 'block';
+            setTimeout(() => { if (!isLoggedIn) passInput.focus(); }, 500);
+
+            console.log('🔮 HGZY VIP AI Panel (BALL STYLE) loaded.');
+        })();
     </script>
 </body>
 </html>
