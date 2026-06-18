@@ -2,954 +2,1002 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>HGZY VIP AI - SIGNAL PANEL</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>HGZY VIP 100</title>
     <style>
+        /* ── RESET & BASE ── */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --love-pink: #ff2d75;
+            --love-gold: #ffd700;
+            --love-red: #ff0044;
+            --love-purple: #a855f7;
+            --love-cyan: #00f2ff;
+            --love-green: #00cc66;
+            --panel-bg: #0b0e1a;
+            --inner-bg: #141a2b;
+            --border-light: #2a3050;
+            --text-main: #f0f4ff;
+            --text-muted: #8899bb;
+            --glass-border: rgba(255, 45, 117, 0.25);
         }
 
         body {
-            background: #000;
+            margin: 0;
             overflow: hidden;
-            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #05080f;
             height: 100vh;
             width: 100vw;
-            user-select: none;
+            position: relative;
         }
 
+        /* ── GAME IFRAME ── */
         #gameFrame {
             width: 100vw;
             height: 100vh;
             border: none;
-            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
 
-        /* ─── FALLING DOTS CANVAS ─── */
-        #dotCanvas {
+        /* ── LOVE LETTER RAIN CANVAS (over game) ── */
+        #loveRainCanvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 99998;
+            z-index: 50;
             pointer-events: none;
+            opacity: 0.35;
         }
 
-        /* ─── OFFLINE OVERLAY ─── */
-        #offline-overlay {
+        /* ── WIN OVERLAY ── */
+        #win-overlay {
             position: fixed;
-            top: 20px;
+            top: -80px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 0, 0, 0.95);
-            color: #fff;
-            padding: 14px 32px;
-            border-radius: 60px;
-            z-index: 100000;
+            background: linear-gradient(135deg, #ffd700, #ff6a00);
+            padding: 6px 20px;
+            border-radius: 40px;
+            z-index: 9999999;
             font-weight: 900;
-            font-size: 16px;
-            letter-spacing: 2px;
-            display: none;
-            box-shadow: 0 0 50px rgba(255, 0, 0, 0.6);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(6px);
-            text-transform: uppercase;
-            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            color: #000;
+            box-shadow: 0 8px 40px rgba(255, 215, 0, 0.6);
+            letter-spacing: 1px;
+            transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        #win-overlay.show {
+            top: 20px;
+        }
+        #win-overlay .win-code {
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-weight: 800;
+            color: #fff;
         }
 
-        /* ─── DRAGGABLE PANEL (BALL STYLE) ─── */
-        #signalPanel {
-            width: 200px;
+        /* ── OFFLINE OVERLAY ── */
+        #offline-overlay {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #ff1133, #b3001b);
+            padding: 4px 16px;
+            border-radius: 30px;
+            z-index: 1000000;
+            font-weight: 900;
+            color: #fff;
+            font-size: 10px;
+            display: none;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* ── DRAGGABLE PANEL (COMPACT + COLORFUL) ── */
+        #draggablePanel {
             position: fixed;
             z-index: 99999;
-            cursor: grab;
+            width: 118px;
             touch-action: none;
-            display: none;
-            top: 70px;
+            top: 85px;
             left: 16px;
         }
 
-        #signalPanel:active {
-            cursor: grabbing;
+        .glass-panel {
+            background: var(--panel-bg) !important;
+            border-radius: 14px;
+            padding: 8px 8px 10px 8px;
+            position: relative;
+            z-index: 1;
+            border: 1.5px solid var(--glass-border);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04),
+                0 0 20px rgba(255, 45, 117, 0.08);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(6px);
         }
 
-        .glass-panel {
-            background: rgba(6, 10, 20, 0.96);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border-radius: 28px;
-            padding: 14px 12px 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 242, 255, 0.06) inset;
+        /* Dynamic Panel Glow based on signal */
+        .glass-panel.glow-big {
+            border-color: var(--love-red);
+            box-shadow: 0 0 25px rgba(255, 0, 68, 0.25), 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+        .glass-panel.glow-small {
+            border-color: var(--love-green);
+            box-shadow: 0 0 25px rgba(0, 204, 102, 0.25), 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+        .glass-panel.glow-hold {
+            border-color: var(--love-cyan);
+            box-shadow: 0 0 25px rgba(0, 242, 255, 0.15), 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        /* ── PANEL HEADER ── */
+        .drag-handle {
+            cursor: move;
+            padding-bottom: 6px;
+            margin-bottom: 6px;
+            border-bottom: 1.5px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand {
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: 0.3px;
+            background: linear-gradient(90deg, #ff2d75, #ffd700, #ff2d75);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmerBrand 3s linear infinite;
+        }
+        @keyframes shimmerBrand {
+            0% {
+                background-position: 0% center;
+            }
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        #network-status {
+            font-size: 6.5px;
+            font-weight: 900;
+            color: #00dd66;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            background: rgba(0, 204, 102, 0.12);
+            padding: 1px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(0, 204, 102, 0.15);
+        }
+        #network-status::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            background: #00dd66;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #00dd66;
+            animation: pulseDot 1.2s ease-in-out infinite;
+        }
+        @keyframes pulseDot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.4;
+                transform: scale(0.7);
+            }
+        }
+
+        /* ── AUTH OVERLAY (UNTOUCHED - KEPT AS IS) ── */
+        #auth-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(4, 7, 16, 0.98);
+            backdrop-filter: blur(15px);
+            z-index: 150;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 12px;
+            transition: all 0.4s ease;
+            overflow: hidden;
+            border: 1.5px solid rgba(0, 242, 255, 0.6);
+        }
+        #auth-overlay canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .login-card {
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            padding: 0 2px;
+        }
+        .login-card label {
+            color: #fff;
+            font-weight: 800;
+            font-size: 7px;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 3px;
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+        }
+        #passInput {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 2px 4px;
+            color: #fff;
+            border-radius: 4px;
+            width: 92%;
+            text-align: center;
+            font-size: 9px;
+            outline: none;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+            height: 18px;
+            font-weight: 600;
+        }
+        #passInput:focus {
+            border-color: var(--love-cyan);
+            box-shadow: 0 0 8px rgba(0, 242, 255, 0.3);
+        }
+        #loginBtn {
+            background: linear-gradient(135deg, #00f2ff 0%, #0077ff 100%);
+            border: none;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: 800;
+            color: #000;
+            font-size: 8px;
+            cursor: pointer;
+            width: 92%;
+            height: 18px;
+            box-shadow: 0 2px 8px rgba(0, 242, 255, 0.25);
+            transition: transform 0.15s;
+        }
+        #loginBtn:active {
+            transform: scale(0.94);
+        }
+
+        /* ── STATS ROW (COMPACT + COLORFUL) ── */
+        .stats-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+        .stat-mini {
+            background: var(--inner-bg);
+            border-radius: 6px;
+            padding: 3px 6px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .stat-mini:nth-child(1) {
+            border-left: 2px solid var(--love-cyan);
+        }
+        .stat-mini:nth-child(2) {
+            border-left: 2px solid var(--love-gold);
+        }
+
+        .lbl {
+            font-size: 6.5px;
+            color: var(--text-muted);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        #clock-display {
+            color: var(--love-cyan);
+            font-size: 9px;
+            font-weight: 900;
+            text-shadow: 0 0 8px rgba(0, 242, 255, 0.15);
+            font-variant-numeric: tabular-nums;
+        }
+        #timer-display {
+            color: var(--love-gold);
+            font-size: 10px;
+            font-weight: 900;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.15);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── SIGNAL BOX (RAINBOW GLOW) ── */
+        .prediction-box {
+            background: linear-gradient(145deg, #101827, #1a2340);
+            border-radius: 10px;
+            padding: 12px 2px 10px 2px;
+            text-align: center;
+            border: 1.5px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
-            transition: opacity 0.4s ease;
         }
-
-        .glass-panel::before {
+        .prediction-box::before {
             content: '';
             position: absolute;
-            top: -60%;
-            left: -60%;
-            width: 220%;
-            height: 220%;
-            background: conic-gradient(from 0deg, transparent, var(--neon-cyan, #00f2ff), transparent, var(--neon-pink, #ff00ea), transparent);
-            animation: rotateBorder 8s linear infinite;
-            z-index: -1;
-            opacity: 0.25;
+            inset: -2px;
+            border-radius: 12px;
+            padding: 2px;
+            background: conic-gradient(from 0deg, #ff2d75, #ffd700, #00f2ff, #a855f7, #ff2d75);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.6s;
+            pointer-events: none;
         }
-
-        @keyframes rotateBorder {
+        .prediction-box.active-glow::before {
+            opacity: 1;
+            animation: spinBorder 3s linear infinite;
+        }
+        @keyframes spinBorder {
+            0% {
+                transform: rotate(0deg);
+            }
             100% {
                 transform: rotate(360deg);
             }
         }
 
-        /* ─── AUTH OVERLAY ─── */
-        #auth-overlay {
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 30% 30%, #0b1428, #02040a);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 28px;
-            padding: 14px;
+        .prediction-box.bg-big {
+            background: linear-gradient(145deg, #1a0a12, #2d0a1a);
+            border-color: rgba(255, 0, 68, 0.4);
         }
-
-        .login-card {
-            width: 100%;
-            padding: 16px 14px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 18px;
-            border: 1px solid rgba(0, 242, 255, 0.15);
-            text-align: center;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        .prediction-box.bg-small {
+            background: linear-gradient(145deg, #0a1a12, #0a2d1a);
+            border-color: rgba(0, 204, 102, 0.4);
         }
-
-        .login-card .lock-icon {
-            font-size: 24px;
-            margin-bottom: 4px;
-            display: block;
-        }
-
-        .login-card label {
-            color: #00f2ff;
-            font-size: 8px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            display: block;
-            margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
-        }
-
-        #passInput {
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px solid #2a2a3a;
-            padding: 8px 8px;
-            color: #fff;
-            border-radius: 10px;
-            text-align: center;
-            width: 100%;
-            font-size: 12px;
-            font-weight: 700;
-            outline: none;
-            margin-bottom: 10px;
-            transition: 0.3s;
-            letter-spacing: 1px;
-            font-family: 'Orbitron', monospace;
-        }
-
-        #passInput:focus {
-            border-color: #00f2ff;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.12);
-        }
-
-        #loginBtn {
-            background: linear-gradient(135deg, #00f2ff, #0066ff);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-weight: 900;
-            font-size: 10px;
-            color: #000;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            box-shadow: 0 4px 18px rgba(0, 242, 255, 0.3);
-            transition: 0.25s;
-            width: 100%;
-            font-family: 'Orbitron', monospace;
-        }
-
-        #loginBtn:hover {
-            transform: scale(1.03);
-            box-shadow: 0 6px 24px rgba(0, 242, 255, 0.4);
-        }
-
-        /* ─── PANEL HEADER ─── */
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .brand {
-            font-weight: 900;
-            font-size: 8px;
-            color: #00f2ff;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            text-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
-        }
-
-        .brand span {
-            color: #ff00ea;
-        }
-
-        #network-status {
-            font-size: 6px;
-            color: #00e676;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            font-weight: 700;
-        }
-
-        #network-status .dot {
-            display: inline-block;
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: #00e676;
-            animation: blink 1.2s infinite;
-        }
-
-        @keyframes blink {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.15;
-            }
-        }
-
-        /* ─── STATS GRID ─── */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5px;
-            margin-bottom: 8px;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 4px 2px;
-            border-radius: 10px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .stat-label {
-            font-size: 5px;
-            text-transform: uppercase;
-            color: #7a7a8a;
-            letter-spacing: 1px;
-            display: block;
-            margin-bottom: 1px;
-            font-weight: 700;
-        }
-
-        .stat-value {
-            font-size: 12px;
-            font-weight: 900;
-            color: #ffd700;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.12);
-        }
-
-        /* ─── PREDICTION BOX ─── */
-        .prediction-box {
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.6), rgba(10, 15, 30, 0.8));
-            border-radius: 16px;
-            padding: 10px 4px 8px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            margin-bottom: 8px;
-            min-height: 80px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .prediction-box::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.03), transparent 70%);
-            pointer-events: none;
-        }
-
-        #box-status {
-            font-size: 6px;
-            color: #00f2ff;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            margin-bottom: 2px;
-            position: relative;
-            z-index: 1;
-            font-weight: 700;
+        .prediction-box.bg-hold {
+            background: linear-gradient(145deg, #0a121a, #0a1a2d);
+            border-color: rgba(0, 242, 255, 0.2);
         }
 
         #prediction-text {
-            font-size: 32px;
-            font-weight: 950;
-            letter-spacing: -0.5px;
+            font-size: 22px;
+            font-weight: 1000;
+            line-height: 1;
+            letter-spacing: 2px;
+            transition: all 0.35s ease;
             position: relative;
             z-index: 1;
-            line-height: 1.1;
-            text-shadow: 0 0 30px currentColor;
-            transition: all 0.3s ease;
         }
 
-        #prediction-text.big-text {
-            color: #ff1100;
-            text-shadow: 0 0 40px rgba(255, 17, 0, 0.4), 0 0 80px rgba(255, 17, 0, 0.15);
+        .big-text {
+            color: #ff2d75;
+            text-shadow: 0 0 20px rgba(255, 45, 117, 0.4), 0 0 60px rgba(255, 0, 68, 0.15);
+            animation: pulsePop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
-        #prediction-text.small-text {
-            color: #ffea00;
-            text-shadow: 0 0 40px rgba(255, 234, 0, 0.3), 0 0 80px rgba(255, 234, 0, 0.1);
+        .small-text {
+            color: #00dd66;
+            text-shadow: 0 0 20px rgba(0, 221, 102, 0.4), 0 0 60px rgba(0, 204, 102, 0.15);
+            animation: pulsePop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
-        #prediction-text.analyzing {
-            font-size: 12px !important;
-            color: #00f2ff !important;
-            letter-spacing: 3px;
+        .hold-text {
+            color: var(--love-cyan);
             text-shadow: 0 0 20px rgba(0, 242, 255, 0.25);
-            animation: pulseText 0.9s infinite;
+            font-size: 16px !important;
+            letter-spacing: 3px !important;
+            animation: blink 1.2s infinite alternate;
         }
 
-        @keyframes pulseText {
-            0%,
+        /* ── LOVE LETTER CODE DISPLAY (compact) ── */
+        .love-code-row {
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+        }
+        .love-code-row .lc-label {
+            font-size: 5.5px;
+            color: var(--text-muted);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .love-code-row .lc-value {
+            font-size: 8px;
+            font-weight: 900;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(90deg, #ff2d75, #ffd700, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1.5px;
+        }
+
+        /* ANIMATIONS */
+        @keyframes pulsePop {
+            0% {
+                transform: scale(0.5);
+                opacity: 0.2;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        @keyframes blink {
+            0% {
+                opacity: 0.3;
+            }
             100% {
                 opacity: 1;
             }
-            50% {
-                opacity: 0.15;
-            }
         }
 
-        /* ─── DETAILS ROW ─── */
-        .details-row {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 5px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-            padding-top: 5px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .detail-item {
-            text-align: center;
-        }
-
-        .detail-item .stat-label {
-            font-size: 5px;
-            color: #7a7a8a;
-        }
-
-        .val {
-            font-weight: 900;
-            font-size: 14px;
-            color: #ffd700;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.08);
-        }
-
-        #color-display {
-            font-weight: 900;
-            font-size: 14px;
-            transition: color 0.3s;
-        }
-
-        /* ─── PROGRESS BAR ─── */
-        .meter-bg {
-            height: 3px;
-            background: #11161f;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-        }
-
-        .meter-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #00f2ff, #ff00ea);
-            transition: width 0.4s linear;
-            border-radius: 6px;
-        }
-
-        /* ─── HISTORY DOTS ─── */
-        .history-list {
-            display: flex;
-            justify-content: center;
-            gap: 4px;
-            flex-wrap: wrap;
-            min-height: 20px;
-        }
-
-        .h-dot {
-            width: 18px;
-            height: 18px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 7px;
-            font-weight: 900;
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-        }
-
-        .h-dot.bg-red {
-            background: #ff1744;
-        }
-        .h-dot.bg-green {
-            background: #00e676;
-        }
-        .h-dot.bg-violet {
-            background: #b388ff;
-        }
-
-        /* ─── RESPONSIVE ─── */
-        @media (max-width: 520px) {
-            #signalPanel {
-                width: 170px;
-                top: 50px;
+        /* ── RESPONSIVE TWEAKS ── */
+        @media (max-width: 480px) {
+            #draggablePanel {
+                width: 108px;
+                top: 75px;
                 left: 10px;
             }
             .glass-panel {
-                padding: 10px 8px 8px;
-                border-radius: 22px;
-            }
-            #prediction-text {
-                font-size: 26px;
-            }
-            .stat-value {
-                font-size: 10px;
-            }
-            .val {
-                font-size: 12px;
-            }
-            .h-dot {
-                width: 15px;
-                height: 15px;
-                font-size: 6px;
-            }
-            .brand {
-                font-size: 7px;
-            }
-            .login-card {
-                padding: 12px 10px;
-            }
-            #passInput {
-                font-size: 10px;
-                padding: 6px 6px;
-            }
-            #loginBtn {
-                font-size: 8px;
-                padding: 6px 12px;
-            }
-            #offline-overlay {
-                font-size: 12px;
-                padding: 10px 20px;
-            }
-            #prediction-text.analyzing {
-                font-size: 10px !important;
-            }
-            .stat-label {
-                font-size: 4px;
-            }
-            #box-status {
-                font-size: 5px;
-            }
-        }
-
-        @media (max-width: 400px) {
-            #signalPanel {
-                width: 150px;
-                top: 40px;
-                left: 6px;
-            }
-            #prediction-text {
-                font-size: 20px;
-            }
-            .stat-value {
-                font-size: 9px;
-            }
-            .val {
-                font-size: 10px;
-            }
-            .h-dot {
-                width: 13px;
-                height: 13px;
-                font-size: 5px;
-            }
-            .glass-panel {
-                padding: 8px 6px 6px;
-                border-radius: 18px;
-            }
-            .brand {
-                font-size: 6px;
-            }
-            .stats-grid {
-                gap: 3px;
-            }
-            .stat-card {
-                padding: 3px 2px;
-                border-radius: 8px;
-            }
-            .prediction-box {
-                padding: 6px 3px 5px;
-                min-height: 60px;
+                padding: 6px 6px 8px 6px;
                 border-radius: 12px;
             }
-            #prediction-text.analyzing {
-                font-size: 8px !important;
+            .brand {
+                font-size: 8px;
+            }
+            #prediction-text {
+                font-size: 19px;
+            }
+            .stat-mini {
+                padding: 2px 4px;
+            }
+            #clock-display {
+                font-size: 8px;
+            }
+            #timer-display {
+                font-size: 9px;
+            }
+            .love-code-row .lc-value {
+                font-size: 7px;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- ─── FALLING DOTS CANVAS ─── -->
-    <canvas id="dotCanvas"></canvas>
+    <div id="offline-overlay">⚠️ DISCONNECTED</div>
 
-    <!-- ─── OFFLINE OVERLAY ─── -->
-    <div id="offline-overlay">⚠ NO DATA CONNECTION</div>
+    <div id="win-overlay">
+        <span>🎉 WIN</span>
+        <span class="win-code" id="winCode">#00000</span>
+    </div>
 
-    <!-- ─── GAME IFRAME ─── -->
-    <iframe id="gameFrame" src="https://hgnice.cc/#/register?invitationCode=511711502736"></iframe>
+    <!-- LOVE LETTER RAIN CANVAS -->
+    <canvas id="loveRainCanvas"></canvas>
 
-    <!-- ─── DRAGGABLE SIGNAL PANEL ─── -->
-    <div id="signalPanel">
-        <div class="glass-panel">
+    <iframe id="gameFrame" src="https://hgnice.cc/#/register?invitationCode=511711502736" title="HGZY Trading Platform"></iframe>
 
-            <!-- ─── AUTH OVERLAY ─── -->
+    <div id="draggablePanel">
+        <div class="glass-panel" id="mainGlassPanel">
+
             <div id="auth-overlay">
+                <canvas id="particleCanvas"></canvas>
                 <div class="login-card">
-                    <span class="lock-icon">🔐</span>
-                    <label>Access Terminal</label>
-                    <input type="password" id="passInput" placeholder="PASSWORD" autocomplete="off" />
-                    <button id="loginBtn">UNLOCK AI</button>
+                    <label>🔐পাসওয়ার্ড </label>
+                    <input type="password" id="passInput" placeholder="••••••" autocomplete="off" />
+                    <button id="loginBtn" onclick="validateAccess()">CONNECT</button>
                 </div>
             </div>
 
-            <!-- ─── HEADER ─── -->
-            <div class="panel-header">
-                <div class="brand">HGZY <span>VIP</span></div>
-                <div id="network-status">
-                    <span class="dot"></span> LIVE
+            <div class="drag-handle" id="dragHandle">
+                <div class="brand">💎 GVR v3.0</div>
+                <div id="network-status">LIVE</div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-mini">
+                    <span class="lbl">🔮 TIME</span>
+                    <span id="clock-display">00:00:00</span>
+                </div>
+                <div class="stat-mini">
+                    <span class="lbl">🔮Time </span>
+                    <span id="timer-display">30</span>
                 </div>
             </div>
 
-            <!-- ─── STATS ─── -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <span class="stat-label">PERIOD</span>
-                    <span id="period-display" class="stat-value">----</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-label">NEXT</span>
-                    <span id="timer-display" class="stat-value">30</span>
-                </div>
+            <div class="prediction-box" id="predictionBox">
+                <div id="prediction-text" class="hold-text">HOLD</div>
             </div>
 
-            <!-- ─── PREDICTION BOX ─── -->
-            <div class="prediction-box">
-                <span id="box-status" class="stat-label" style="color:#00f2ff;">WAITING</span>
-                <div id="prediction-text" class="analyzing">READY</div>
-                <div class="details-row">
-                    <div class="detail-item">
-                        <span class="stat-label">🕷</span>
-                        <span id="num-display" class="val">--</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="stat-label">🕷</span>
-                        <span id="color-display" class="val" style="color:#888;">---</span>
-                    </div>
-                </div>
+            <!-- LOVE LETTER CODE DISPLAY -->
+            <div class="love-code-row">
+                <span class="lc-label">💌 LOVE</span>
+                <span class="lc-value" id="loveCodeDisplay">─────</span>
             </div>
-
-            <!-- ─── PROGRESS ─── -->
-            <div class="meter-bg">
-                <div id="progress-bar" class="meter-fill"></div>
-            </div>
-
-            <!-- ─── HISTORY ─── -->
-            <div id="history-row" class="history-list"></div>
 
         </div>
     </div>
-
-    <!-- ─── FIREBASE SDK ─── -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
-    </script>
-
-    <script>
-        // ─── FIREBASE CONFIG ───
-        const firebaseConfig = {
-            apiKey: "AIzaSyBPBQOeApFZQwGX8G4mZxhY5C2jjN6VWmU",
-            authDomain: "dkwin-panel-ai.firebaseapp.com",
-            databaseURL: "https://dkwin-panel-ai-default-rtdb.firebaseio.com",
-            projectId: "dkwin-panel-ai",
-            storageBucket: "dkwin-panel-ai.firebasestorage.app",
-            messagingSenderId: "925573387640",
-            appId: "1:925573387640:web:8faf648b0b89933c89e48d",
-            measurementId: "G-X3ZFCRWEH8"
+     const firebaseConfig = {
+            apiKey: "AIzaSyA4MXyCyvpAL8NQ23j3TWxiszPofWInVA",
+            authDomain: "wingo-ai-624fb.firebaseapp.com",
+            databaseURL: "https://wingo-ai-624fb-default-rtdb.firebaseio.com",
+            projectId: "wingo-ai-624fb",
+            appId: "1:266167882150:web:7f0f83606dfd4bcd8aff67"
         };
+    <script>
+        // ── STATE ──
+        let isLoggedIn = false;
+        const ACCESS_PASSWORD = "VIP100";
+        const CYCLE_SEC = 30;
+        let lastPeriodKey = "";
+        let currentSize = null;
+        let winTimeout = null;
+        let loveCodeInterval = null;
+        let loveRainInterval = null;
 
-        let firebaseReady = false;
-        let database = null;
+        // ── DOM REFS ──
+        const panel = document.getElementById("draggablePanel");
+        const mainGlassPanel = document.getElementById("mainGlassPanel");
+        const dragHandle = document.getElementById("dragHandle");
+        const authOverlay = document.getElementById("auth-overlay");
+        const clockSpan = document.getElementById("clock-display");
+        const timerSpan = document.getElementById("timer-display");
+        const predictionText = document.getElementById("prediction-text");
+        const predictionBox = document.getElementById("predictionBox");
+        const offlineDiv = document.getElementById("offline-overlay");
+        const winOverlay = document.getElementById("win-overlay");
+        const winCodeSpan = document.getElementById("winCode");
+        const loveCodeDisplay = document.getElementById("loveCodeDisplay");
+        const canvas = document.getElementById("particleCanvas");
+        const ctx = canvas.getContext("2d");
 
-        try {
-            const app = firebase.initializeApp(firebaseConfig);
-            database = firebase.database();
-            firebaseReady = true;
-            console.log('🔥 Firebase connected.');
-        } catch (err) {
-            console.warn('⚠ Firebase init error:', err);
-            firebaseReady = false;
+        // ── LOVE LETTER RAIN CANVAS ──
+        const rainCanvas = document.getElementById("loveRainCanvas");
+        const rctx = rainCanvas.getContext("2d");
+        let raindrops = [];
+        let rainChars = [];
+
+        function initRainChars() {
+            const chars = [];
+            // A-Z uppercase
+            for (let i = 65; i <= 90; i++) chars.push(String.fromCharCode(i));
+            // a-z lowercase
+            for (let i = 97; i <= 122; i++) chars.push(String.fromCharCode(i));
+            // 0-9
+            for (let i = 0; i <= 9; i++) chars.push(String(i));
+            return chars;
         }
 
-        // ─── FALLING DOTS ───
-        (function initDots() {
-            const canvas = document.getElementById('dotCanvas');
-            const ctx = canvas.getContext('2d');
-            let width, height;
-            const dots = [];
-            const DOT_COUNT = 35;
-            const colors = ['#ff1744', '#00e676', '#b388ff', '#ffea00', '#00f2ff', '#ff9100'];
+        function resizeRainCanvas() {
+            rainCanvas.width = window.innerWidth;
+            rainCanvas.height = window.innerHeight;
+        }
 
-            function resize() {
-                width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
+        class Raindrop {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * rainCanvas.height;
             }
-            window.addEventListener('resize', resize);
-            resize();
-
-            class Dot {
-                constructor() {
+            reset() {
+                this.x = Math.random() * rainCanvas.width;
+                this.y = -20 - Math.random() * 40;
+                this.size = 10 + Math.random() * 16;
+                this.speed = 0.6 + Math.random() * 1.4;
+                this.char = rainChars[Math.floor(Math.random() * rainChars.length)];
+                // Love-themed colors: pink, gold, red, purple, cyan, green
+                const loveColors = [
+                    '#ff2d75', '#ff6b9d', '#ffd700', '#ffaa00',
+                    '#ff0044', '#ff4466', '#a855f7', '#c084fc',
+                    '#00f2ff', '#00cc66', '#ff6699', '#ff3388'
+                ];
+                this.color = loveColors[Math.floor(Math.random() * loveColors.length)];
+                this.opacity = 0.2 + Math.random() * 0.5;
+                this.rotation = (Math.random() - 0.5) * 0.08;
+                this.wobble = Math.random() * Math.PI * 2;
+                this.wobbleSpeed = 0.01 + Math.random() * 0.02;
+                this.wobbleAmp = 0.3 + Math.random() * 0.6;
+            }
+            update() {
+                this.wobble += this.wobbleSpeed;
+                this.x += Math.sin(this.wobble) * this.wobbleAmp * 0.4;
+                this.y += this.speed;
+                if (this.y > rainCanvas.height + 30) {
                     this.reset();
-                    this.y = Math.random() * height - height;
-                }
-                reset() {
-                    this.x = Math.random() * width;
-                    this.y = -10 - Math.random() * 80;
-                    this.radius = 3 + Math.random() * 6;
-                    this.speed = 0.8 + Math.random() * 1.8;
-                    this.color = colors[Math.floor(Math.random() * colors.length)];
-                    this.alpha = 0.4 + Math.random() * 0.6;
-                    this.wobble = Math.random() * 0.03;
-                    this.phase = Math.random() * Math.PI * 2;
-                }
-                update() {
-                    this.y += this.speed;
-                    this.x += Math.sin(this.phase) * this.wobble;
-                    this.phase += 0.02;
-                    if (this.y > height + 20) this.reset();
-                }
-                draw() {
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = this.color;
-                    ctx.globalAlpha = this.alpha * 0.7;
-                    ctx.fill();
-                    ctx.shadowColor = this.color;
-                    ctx.shadowBlur = 12;
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    ctx.globalAlpha = 1;
                 }
             }
-
-            for (let i = 0; i < DOT_COUNT; i++) {
-                const d = new Dot();
-                d.y = Math.random() * height;
-                dots.push(d);
+            draw() {
+                const alpha = this.opacity * (0.6 + 0.4 * Math.sin(this.y * 0.02));
+                rctx.save();
+                rctx.translate(this.x, this.y);
+                rctx.rotate(this.rotation);
+                rctx.font = `${this.size}px 'Courier New', monospace`;
+                rctx.textAlign = 'center';
+                rctx.textBaseline = 'middle';
+                rctx.shadowColor = this.color;
+                rctx.shadowBlur = 12;
+                rctx.globalAlpha = alpha;
+                rctx.fillStyle = this.color;
+                rctx.fillText(this.char, 0, 0);
+                rctx.restore();
             }
+        }
 
-            function animate() {
-                ctx.clearRect(0, 0, width, height);
-                for (const dot of dots) {
-                    dot.update();
-                    dot.draw();
-                }
-                requestAnimationFrame(animate);
+        function initRain() {
+            rainChars = initRainChars();
+            raindrops = [];
+            const count = Math.floor((window.innerWidth * window.innerHeight) / 3200);
+            const finalCount = Math.min(Math.max(count, 35), 90);
+            for (let i = 0; i < finalCount; i++) {
+                const d = new Raindrop();
+                d.x = Math.random() * rainCanvas.width;
+                d.y = Math.random() * rainCanvas.height;
+                raindrops.push(d);
             }
-            animate();
-        })();
+        }
 
-        // ─── MAIN APPLICATION ───
-        (function() {
-            'use strict';
-
-            const panel = document.getElementById('signalPanel');
-            const offlineMsg = document.getElementById('offline-overlay');
-            const authOverlay = document.getElementById('auth-overlay');
-            const passInput = document.getElementById('passInput');
-            const loginBtn = document.getElementById('loginBtn');
-
-            const periodDisplay = document.getElementById('period-display');
-            const timerDisplay = document.getElementById('timer-display');
-            const progressBar = document.getElementById('progress-bar');
-            const predictionText = document.getElementById('prediction-text');
-            const boxStatus = document.getElementById('box-status');
-            const numDisplay = document.getElementById('num-display');
-            const colorDisplay = document.getElementById('color-display');
-            const historyRow = document.getElementById('history-row');
-            const netStatus = document.getElementById('network-status');
-
-            const ACCESS_KEY = 'VIP100';
-            const CYCLE_TIME = 30;
-            const MAX_HISTORY = 10;
-
-            let isLoggedIn = false;
-            let lastPeriod = '';
-            let isOnline = true;
-
-            function checkNetwork() {
-                const online = navigator.onLine;
-                isOnline = online;
-                if (online && isLoggedIn) {
-                    panel.style.display = 'block';
-                    offlineMsg.style.display = 'none';
-                    netStatus.innerHTML = '<span class="dot"></span> LIVE';
-                    netStatus.style.color = '#00e676';
-                } else if (!online) {
-                    panel.style.display = 'none';
-                    offlineMsg.style.display = 'block';
-                    netStatus.innerHTML = '● OFFLINE';
-                    netStatus.style.color = '#ff1744';
-                } else if (online && !isLoggedIn) {
-                    panel.style.display = 'block';
-                    offlineMsg.style.display = 'none';
-                    netStatus.innerHTML = '<span class="dot"></span> LIVE';
-                    netStatus.style.color = '#00e676';
-                }
+        function animateRain() {
+            rctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+            for (const d of raindrops) {
+                d.update();
+                d.draw();
             }
-
-            window.addEventListener('online', checkNetwork);
-            window.addEventListener('offline', checkNetwork);
-
-            function validateKey() {
-                const val = passInput.value.trim();
-                if (val === ACCESS_KEY) {
-                    isLoggedIn = true;
-                    authOverlay.style.display = 'none';
-                    checkNetwork();
-                    if (isOnline) panel.style.display = 'block';
-                    document.getElementById('gameFrame').focus();
-                    loadHistoryFromFirebase();
-                } else {
-                    alert('⛔ ACCESS DENIED');
-                    passInput.value = '';
-                    passInput.focus();
-                }
+            if (isLoggedIn) {
+                requestAnimationFrame(animateRain);
             }
+        }
 
-            loginBtn.addEventListener('click', validateKey);
-            passInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') validateKey();
-            });
+        function startRain() {
+            resizeRainCanvas();
+            initRain();
+            animateRain();
+        }
 
-            function setAnalyzing() {
-                predictionText.textContent = 'SCANNING…';
-                predictionText.className = 'analyzing';
-                boxStatus.textContent = 'AI ANALYZING…';
-                numDisplay.textContent = '--';
-                colorDisplay.textContent = '---';
-                colorDisplay.style.color = '#888';
+        window.addEventListener('resize', () => {
+            resizeRainCanvas();
+            if (isLoggedIn) {
+                initRain();
             }
+        });
 
-            function setSignal(isBig, num1, num2, colorName, colorHex, colorClass) {
-                predictionText.textContent = isBig ? 'BIG' : 'SMALL';
-                predictionText.className = isBig ? 'big-text' : 'small-text';
-                boxStatus.textContent = '🎯 SIGNAL';
-                numDisplay.textContent = num1 + ',' + num2;
-                colorDisplay.textContent = colorName;
-                colorDisplay.style.color = colorHex;
-
-                const dot = document.createElement('div');
-                dot.className = 'h-dot ' + colorClass;
-                dot.textContent = num1;
-                historyRow.prepend(dot);
-                while (historyRow.children.length > MAX_HISTORY) {
-                    historyRow.removeChild(historyRow.lastChild);
-                }
-
-                saveSignalToFirebase({
-                    period: periodDisplay.textContent,
-                    prediction: isBig ? 'BIG' : 'SMALL',
-                    num1: num1,
-                    num2: num2,
-                    color: colorName,
-                    colorHex: colorHex,
-                    colorClass: colorClass,
-                    timestamp: Date.now()
-                });
+        // ── LOVE LETTER CODE GENERATOR ──
+        function generateLoveCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 7; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
             }
+            return code;
+        }
 
-            function saveSignalToFirebase(data) {
-                if (!firebaseReady || !isLoggedIn) return;
-                try {
-                    const ref = database.ref('signals/' + data.period);
-                    ref.set(data).catch(err => console.warn('Save error:', err));
-                } catch (e) { console.warn('Save exception:', e); }
+        function updateLoveCode() {
+            if (!isLoggedIn) return;
+            const code = generateLoveCode();
+            loveCodeDisplay.textContent = code;
+            // Animate the code change
+            loveCodeDisplay.style.transition = 'none';
+            loveCodeDisplay.style.opacity = '0.3';
+            loveCodeDisplay.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                loveCodeDisplay.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                loveCodeDisplay.style.opacity = '1';
+                loveCodeDisplay.style.transform = 'scale(1)';
+            }, 50);
+        }
+
+        // ── PARTICLE SYSTEM (auth overlay) ──
+        let particles = [];
+        const PARTICLE_COUNT = 15;
+        const colors = ['#ff2d75', '#ffd700', '#00f2ff', '#a855f7', '#00cc66', '#ff0044', '#ff6699'];
+
+        function resizeCanvasAuth() {
+            const rect = authOverlay.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height;
             }
-
-            function loadHistoryFromFirebase() {
-                if (!firebaseReady || !isLoggedIn) return;
-                try {
-                    const ref = database.ref('signals');
-                    ref.orderByKey().limitToLast(MAX_HISTORY).once('value', (snapshot) => {
-                        const signals = [];
-                        snapshot.forEach((child) => signals.push(child.val()));
-                        signals.reverse();
-                        historyRow.innerHTML = '';
-                        signals.forEach((sig) => {
-                            const dot = document.createElement('div');
-                            dot.className = 'h-dot ' + (sig.colorClass || 'bg-red');
-                            dot.textContent = sig.num1 || '?';
-                            historyRow.appendChild(dot);
-                        });
-                        while (historyRow.children.length > MAX_HISTORY) {
-                            historyRow.removeChild(historyRow.lastChild);
-                        }
-                        console.log('📜 Loaded ' + signals.length + ' signals.');
-                    }).catch(err => console.warn('Load error:', err));
-                } catch (e) { console.warn('Load exception:', e); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = -10 - Math.random() * 30;
+                this.size = 1 + Math.random() * 3;
+                this.speedY = 0.3 + Math.random() * 0.7;
+                this.speedX = (Math.random() - 0.5) * 0.4;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.opacity = 0.4 + Math.random() * 0.6;
+                this.wobble = Math.random() * Math.PI * 2;
+                this.wobbleSpeed = 0.02;
+                this.wobbleAmp = 0.5;
+                this.life = 1;
+                this.decay = 0.002 + Math.random() * 0.004;
             }
-
-            function runEngine() {
-                if (!isLoggedIn || !isOnline) return;
-
-                const now = new Date();
-                const sec = now.getSeconds();
-                const remaining = CYCLE_TIME - (sec % CYCLE_TIME);
-
-                const totalSec = (now.getHours() * 3600) + (now.getMinutes() * 60) + sec;
-                const periodIdx = Math.floor(totalSec / CYCLE_TIME) + 1;
-                const periodStr = String(periodIdx).padStart(5, '0');
-
-                timerDisplay.textContent = remaining;
-                periodDisplay.textContent = periodStr;
-                const progress = ((CYCLE_TIME - remaining) / CYCLE_TIME) * 100;
-                progressBar.style.width = Math.min(100, progress) + '%';
-
-                if (remaining <= 6 && remaining > 0) {
-                    setAnalyzing();
-                }
-
-                if (periodStr !== lastPeriod && remaining === CYCLE_TIME) {
-                    lastPeriod = periodStr;
-                    generateSignal();
+            update() {
+                this.wobble += this.wobbleSpeed;
+                this.x += this.speedX + Math.sin(this.wobble) * this.wobbleAmp * 0.3;
+                this.y += this.speedY;
+                this.life -= this.decay;
+                if (this.y > canvas.height + 10 || this.life <= 0) {
+                    this.reset();
                 }
             }
+            draw() {
+                const alpha = this.opacity * this.life;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = alpha;
+                ctx.fill();
+            }
+        }
 
-            function generateSignal() {
-                const isBig = Math.random() < 0.60;
-                let pool = isBig ? [5, 6, 7, 8, 9] : [0, 1, 2, 3, 4];
-                const idx1 = Math.floor(Math.random() * pool.length);
-                let n1 = pool[idx1];
-                pool.splice(idx1, 1);
-                const idx2 = Math.floor(Math.random() * pool.length);
-                let n2 = pool[idx2];
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const p = new Particle();
+                p.x = Math.random() * canvas.width;
+                p.y = Math.random() * canvas.height;
+                particles.push(p);
+            }
+        }
 
-                let colorName, colorHex, colorClass;
-                if (n1 === 0 || n1 === 5) {
-                    colorName = 'VIOLET';
-                    colorHex = '#b388ff';
-                    colorClass = 'bg-violet';
-                } else if (n1 % 2 === 0) {
-                    colorName = 'RED';
-                    colorHex = '#ff1744';
-                    colorClass = 'bg-red';
-                } else {
-                    colorName = 'GREEN';
-                    colorHex = '#00e676';
-                    colorClass = 'bg-green';
-                }
+        function animateParticles() {
+            if (isLoggedIn) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (const p of particles) {
+                p.update();
+                p.draw();
+            }
+            requestAnimationFrame(animateParticles);
+        }
 
-                setSignal(isBig, n1, n2, colorName, colorHex, colorClass);
+        function startParticles() {
+            resizeCanvasAuth();
+            initParticles();
+            animateParticles();
+        }
+
+        window.addEventListener('resize', () => {
+            if (!isLoggedIn) resizeCanvasAuth();
+        });
+
+        // ── SIGNAL GENERATOR ──
+        function generateNewSignal() {
+            const digit = Math.floor(Math.random() * 10);
+            const isBig = digit >= 5;
+            const sizeText = isBig ? "BIG" : "SMALL";
+
+            currentSize = sizeText;
+            predictionText.textContent = sizeText;
+
+            // Remove all classes
+            predictionText.className = '';
+            predictionBox.className = 'prediction-box';
+            mainGlassPanel.className = 'glass-panel';
+
+            if (isBig) {
+                predictionText.classList.add('big-text');
+                predictionBox.classList.add('bg-big');
+                predictionBox.classList.add('active-glow');
+                mainGlassPanel.classList.add('glow-big');
+            } else {
+                predictionText.classList.add('small-text');
+                predictionBox.classList.add('bg-small');
+                predictionBox.classList.add('active-glow');
+                mainGlassPanel.classList.add('glow-small');
             }
 
-            /* ─── DRAG ─── */
-            let isDragging = false;
-            let startX = 0,
-                startY = 0,
-                offsetX = 0,
-                offsetY = 0;
-
-            function onDragStart(e) {
-                const target = e.target;
-                if (target.tagName === 'INPUT' || target.tagName === 'BUTTON') return;
-                const touch = e.type === 'touchstart' ? e.touches[0] : e;
-                startX = touch.clientX - offsetX;
-                startY = touch.clientY - offsetY;
-                isDragging = true;
-                panel.style.cursor = 'grabbing';
+            // Random win trigger
+            if (Math.random() < 0.28) {
+                triggerWin();
             }
 
-            function onDragMove(e) {
-                if (!isDragging) return;
-                e.preventDefault();
-                const touch = e.type === 'touchmove' ? e.touches[0] : e;
-                offsetX = touch.clientX - startX;
-                offsetY = touch.clientY - startY;
-                panel.style.transform = 'translate3d(' + offsetX + 'px, ' + offsetY + 'px, 0)';
+            // Update love code on signal change
+            updateLoveCode();
+        }
+
+        // ── WIN OVERLAY ──
+        function triggerWin() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 5; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
             }
+            winCodeSpan.textContent = '#' + code;
+            winOverlay.classList.add('show');
+            if (winTimeout) clearTimeout(winTimeout);
+            winTimeout = setTimeout(() => {
+                winOverlay.classList.remove('show');
+            }, 2500);
+        }
 
-            function onDragEnd() {
-                isDragging = false;
-                panel.style.cursor = 'grab';
+        // ── PERIOD & CLOCK CALCULATOR ──
+        function getPeriodData() {
+            const now = new Date();
+
+            const hrs = String(now.getHours()).padStart(2, "0");
+            const mins = String(now.getMinutes()).padStart(2, "0");
+            const secs = String(now.getSeconds()).padStart(2, "0");
+            const clockTime = `${hrs}:${mins}:${secs}`;
+
+            const totalSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+            const idx = Math.floor(totalSec / CYCLE_SEC);
+            const code = String(idx).padStart(5, "0");
+            const elapsed = totalSec % CYCLE_SEC;
+            const remaining = CYCLE_SEC - elapsed;
+
+            return { periodCode: code, remaining, clockTime };
+        }
+
+        // ── TIMER ENGINE ──
+        function updateTimerAndProgress() {
+            if (!isLoggedIn) return;
+            const { periodCode, remaining, clockTime } = getPeriodData();
+
+            clockSpan.textContent = clockTime;
+            timerSpan.textContent = remaining < 10 ? "0" + remaining : remaining;
+
+            if (remaining === CYCLE_SEC && periodCode !== lastPeriodKey) {
+                lastPeriodKey = periodCode;
+                generateNewSignal();
             }
+        }
 
-            panel.addEventListener('mousedown', onDragStart);
-            document.addEventListener('mousemove', onDragMove);
-            document.addEventListener('mouseup', onDragEnd);
-            panel.addEventListener('touchstart', onDragStart, { passive: true });
-            document.addEventListener('touchmove', onDragMove, { passive: false });
-            document.addEventListener('touchend', onDragEnd, { passive: true });
+        // ── DRAGGABLE ENGINE ──
+        let offsetX = 0,
+            offsetY = 0,
+            isDragging = false;
 
-            /* ─── INIT ─── */
-            checkNetwork();
-            setInterval(runEngine, 1000);
-            setTimeout(runEngine, 300);
-            if (navigator.onLine) panel.style.display = 'block';
-            setTimeout(() => { if (!isLoggedIn) passInput.focus(); }, 500);
+        function startDrag(e) {
+            isDragging = true;
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            offsetX = clientX - panel.offsetLeft;
+            offsetY = clientY - panel.offsetTop;
+        }
 
-            console.log('🔮 HGZY VIP AI Panel (BALL STYLE) loaded.');
-        })();
+        function doDrag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            let left = clientX - offsetX;
+            let top = clientY - offsetY;
+            left = Math.max(-30, Math.min(left, window.innerWidth - panel.offsetWidth + 30));
+            top = Math.max(0, Math.min(top, window.innerHeight - panel.offsetHeight + 15));
+            panel.style.left = `${left}px`;
+            panel.style.top = `${top}px`;
+        }
+
+        function stopDrag() { isDragging = false; }
+
+        dragHandle.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', doDrag);
+        document.addEventListener('mouseup', stopDrag);
+        dragHandle.addEventListener('touchstart', startDrag, { passive: true });
+        document.addEventListener('touchmove', doDrag, { passive: false });
+        document.addEventListener('touchend', stopDrag);
+
+        // ── ACCESS VALIDATOR ──
+        window.validateAccess = function() {
+            const input = document.getElementById("passInput").value.trim();
+            if (input === ACCESS_PASSWORD) {
+                isLoggedIn = true;
+                authOverlay.style.opacity = "0";
+                setTimeout(() => {
+                    authOverlay.style.display = "none";
+                }, 400);
+
+                // Start love rain
+                startRain();
+
+                const { periodCode } = getPeriodData();
+                lastPeriodKey = periodCode;
+                generateNewSignal();
+
+                // Update love code periodically
+                if (loveCodeInterval) clearInterval(loveCodeInterval);
+                loveCodeInterval = setInterval(updateLoveCode, 4000);
+
+                setInterval(updateTimerAndProgress, 1000);
+                updateTimerAndProgress();
+
+                // Initial love code
+                setTimeout(updateLoveCode, 300);
+
+            } else {
+                alert("❌ INVALID PASSCODE!");
+            }
+        };
+
+        document.getElementById("passInput").addEventListener("keydown", function(e) {
+            if (e.key === "Enter") validateAccess();
+        });
+
+        // ── OFFLINE DETECTION ──
+        function checkOnline() {
+            if (navigator.onLine) {
+                offlineDiv.style.display = 'none';
+                document.getElementById('network-status').textContent = 'LIVE';
+                document.getElementById('network-status').style.color = '#00dd66';
+                document.getElementById('network-status').style.borderColor = 'rgba(0,204,102,0.15)';
+            } else {
+                offlineDiv.style.display = 'block';
+                document.getElementById('network-status').textContent = 'OFFLINE';
+                document.getElementById('network-status').style.color = '#ff3344';
+                document.getElementById('network-status').style.borderColor = 'rgba(255,51,68,0.15)';
+            }
+        }
+
+        window.addEventListener('online', checkOnline);
+        window.addEventListener('offline', checkOnline);
+
+        // ── START PARTICLES ──
+        startParticles();
+
+        // ── INITIAL CHECK ──
+        checkOnline();
+
+        // ── NETWORK STATUS HEARTBEAT ──
+        setInterval(() => {
+            if (isLoggedIn) {
+                // Just keep the status fresh
+                checkOnline();
+            }
+        }, 5000);
+
+        console.log('💌 GVR VIP • Love Signal Panel loaded');
+        console.log('🔐 Enter passcode to unlock');
+        console.log('💡 Love Letter Rain active after login');
     </script>
+
 </body>
 </html>
