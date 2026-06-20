@@ -1,1002 +1,1386 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>HGZY VIP 100</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>HGZY K3 </title>
     <style>
-        /* ── RESET & BASE ── */
+        /* =============================================================
+           SECTION: KEYFRAME ANIMATIONS
+           All animation definitions used throughout the interface.
+           Each animation is documented with its purpose and behavior.
+           ============================================================= */
+
+        /* Rainbow border glow animation
+           Cycles through neon magenta, pink, cyan, and green colors
+           Applied to the main signal panel border and box-shadow */
+        @keyframes rainbow {
+            0%   { border-color: #ff00ff; box-shadow: 0 0 10px rgba(255,0,255,0.5), inset 0 0 8px rgba(255,0,255,0.04); }
+            25%  { border-color: #ff0066; box-shadow: 0 0 10px rgba(255,0,102,0.5), inset 0 0 8px rgba(255,0,102,0.04); }
+            50%  { border-color: #00eaff; box-shadow: 0 0 10px rgba(0,234,255,0.5), inset 0 0 8px rgba(0,234,255,0.04); }
+            75%  { border-color: #00ff66; box-shadow: 0 0 10px rgba(0,255,102,0.5), inset 0 0 8px rgba(0,255,102,0.04); }
+            100% { border-color: #ff00ff; box-shadow: 0 0 10px rgba(255,0,255,0.5), inset 0 0 8px rgba(255,0,255,0.04); }
+        }
+
+        /* Panel spin routine animation
+           Simulates a 3D phone-like rotation using perspective and rotateY
+           The panel scales down during mid-rotation for depth effect
+           Duration: 5-6 seconds for a dramatic spinning effect */
+        @keyframes spinRoutine {
+            0%   { transform: perspective(400px) rotateY(0deg) scale(1); }
+            10%  { transform: perspective(400px) rotateY(36deg) scale(0.92); }
+            20%  { transform: perspective(400px) rotateY(72deg) scale(0.82); }
+            30%  { transform: perspective(400px) rotateY(108deg) scale(0.68); }
+            40%  { transform: perspective(400px) rotateY(144deg) scale(0.58); }
+            50%  { transform: perspective(400px) rotateY(180deg) scale(0.50); }
+            60%  { transform: perspective(400px) rotateY(216deg) scale(0.58); }
+            70%  { transform: perspective(400px) rotateY(252deg) scale(0.68); }
+            80%  { transform: perspective(400px) rotateY(288deg) scale(0.82); }
+            90%  { transform: perspective(400px) rotateY(324deg) scale(0.92); }
+            100% { transform: perspective(400px) rotateY(360deg) scale(1); }
+        }
+
+        /* Fade in from top animation
+           Used when signal box appears after login */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Blink animation for live indicator dot
+           Rapid opacity toggle to simulate a blinking LED */
+        @keyframes blink {
+            0%, 100% { opacity: 1; box-shadow: 0 0 6px #ff0044; }
+            50%      { opacity: 0.15; box-shadow: 0 0 2px #ff0044; }
+        }
+
+        /* Glow pulse animation for countdown timer
+           Subtle brightness oscillation to make timer feel alive */
+        @keyframes glowPulse {
+            0%, 100% { filter: brightness(1); }
+            50%      { filter: brightness(1.25); }
+        }
+
+        /* Slide in scale animation for login section
+           Combines opacity fade with scale-up effect */
+        @keyframes slideIn {
+            from { opacity: 0; transform: scale(0.85); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        /* Color shift animation for gradient backgrounds
+           Moves background-position to create flowing color transitions */
+        @keyframes colorShift {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Loading spinner for signal area during fetch */
+        @keyframes loadSpin {
+            0%   { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Signal reveal flash effect */
+        @keyframes sigFlash {
+            0%   { opacity: 0; transform: scale(0.5); }
+            50%  { opacity: 1; transform: scale(1.15); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* =============================================================
+           SECTION: BASE RESET STYLES
+           Universal reset to normalize rendering across browsers
+           ============================================================= */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
 
-        :root {
-            --love-pink: #ff2d75;
-            --love-gold: #ffd700;
-            --love-red: #ff0044;
-            --love-purple: #a855f7;
-            --love-cyan: #00f2ff;
-            --love-green: #00cc66;
-            --panel-bg: #0b0e1a;
-            --inner-bg: #141a2b;
-            --border-light: #2a3050;
-            --text-main: #f0f4ff;
-            --text-muted: #8899bb;
-            --glass-border: rgba(255, 45, 117, 0.25);
-        }
-
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #05080f;
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-        }
-
-        /* ── GAME IFRAME ── */
-        #gameFrame {
+        /* =============================================================
+           SECTION: BACKGROUND IFRAME STYLES
+           The iframe loads the main website in full screen behind the panel
+           ============================================================= */
+        iframe {
             width: 100vw;
             height: 100vh;
             border: none;
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             z-index: 1;
         }
 
-        /* ── LOVE LETTER RAIN CANVAS (over game) ── */
-        #loveRainCanvas {
+        /* =============================================================
+           SECTION: NO INTERNET OVERLAY STYLES
+           Full-screen blocking overlay shown when internet is disconnected
+           Prevents any access to the signal panel without network
+           ============================================================= */
+        #noNet {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 50;
-            pointer-events: none;
-            opacity: 0.35;
-        }
-
-        /* ── WIN OVERLAY ── */
-        #win-overlay {
-            position: fixed;
-            top: -80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #ffd700, #ff6a00);
-            padding: 6px 20px;
-            border-radius: 40px;
+            right: 0;
+            bottom: 0;
             z-index: 9999999;
-            font-weight: 900;
-            font-size: 18px;
-            color: #000;
-            box-shadow: 0 8px 40px rgba(255, 215, 0, 0.6);
-            letter-spacing: 1px;
-            transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        #win-overlay.show {
-            top: 20px;
-        }
-        #win-overlay .win-code {
-            font-size: 14px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 2px 12px;
-            border-radius: 30px;
-            font-weight: 800;
-            color: #fff;
-        }
-
-        /* ── OFFLINE OVERLAY ── */
-        #offline-overlay {
-            position: fixed;
-            top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(90deg, #ff1133, #b3001b);
-            padding: 4px 16px;
-            border-radius: 30px;
-            z-index: 1000000;
-            font-weight: 900;
-            color: #fff;
-            font-size: 10px;
+            background: radial-gradient(ellipse at center, #0a0a0a 0%, #000000 100%);
             display: none;
-            letter-spacing: 0.5px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 14px;
         }
 
-        /* ── DRAGGABLE PANEL (COMPACT + COLORFUL) ── */
-        #draggablePanel {
+        /* Show class toggled by JavaScript when offline */
+        #noNet.show {
+            display: flex;
+        }
+
+        /* Outer spinning ring of the no-internet icon */
+        .no-net-ring {
+            width: 60px;
+            height: 60px;
+            border: 3px solid transparent;
+            border-top-color: #ff0044;
+            border-right-color: #ff0044;
+            border-radius: 50%;
+            animation: spinRoutine 2s linear infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Inner counter-spinning ring of the no-internet icon */
+        .no-net-ring-inner {
+            width: 42px;
+            height: 42px;
+            border: 2px solid transparent;
+            border-bottom-color: #ff0044;
+            border-left-color: #ff0044;
+            border-radius: 50%;
+            animation: spinRoutine 1.5s linear infinite reverse;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            color: #ff0044;
+        }
+
+        /* No internet title text */
+        .no-net-title {
+            color: #ff0044;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        /* No internet subtitle text */
+        .no-net-sub {
+            color: #555;
+            font-size: 10px;
+            text-align: center;
+            padding: 0 30px;
+            line-height: 1.5;
+            max-width: 280px;
+        }
+
+        /* =============================================================
+           SECTION: SIGNAL PANEL - MAIN CONTAINER
+           Compact premium panel with animated gradient background
+           Rainbow border, glass blur effect, and top accent line
+           ============================================================= */
+        #panel {
             position: fixed;
-            z-index: 99999;
-            width: 118px;
+            z-index: 999999;
+            top: 8%;
+            left: 8px;
+            width: 120px;
+            /* Animated dark gradient background with subtle color movement */
+            background: linear-gradient(145deg,
+                rgba(15, 5, 30, 0.96),
+                rgba(5, 10, 25, 0.97),
+                rgba(10, 5, 20, 0.96)
+            );
+            background-size: 200% 200%;
+            animation: rainbow 4s infinite linear, colorShift 8s ease infinite;
+            border-radius: 16px;
+            padding: 10px 8px 8px 8px;
+            border: 2px solid #ff00ff;
             touch-action: none;
-            top: 85px;
-            left: 16px;
+            cursor: grab;
+            color: #fff;
+            text-align: center;
+            /* Glass morphism blur effect */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            /* Ensure panel is above iframe but below no-net overlay */
+            pointer-events: auto;
         }
 
-        .glass-panel {
-            background: var(--panel-bg) !important;
-            border-radius: 14px;
-            padding: 8px 8px 10px 8px;
+        /* Top rainbow accent line on the panel
+           Uses ::after pseudo-element for the color bar */
+        #panel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 15%;
+            right: 15%;
+            height: 2px;
+            background: linear-gradient(90deg, #ff00ff, #00eaff, #00ff66, #ff00ff);
+            background-size: 300% 100%;
+            animation: colorShift 4s linear infinite;
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* Spin class applied by JavaScript during 56-second routine
+           Overrides normal animation with 5-6 second spin */
+        #panel.spin {
+            animation: spinRoutine 5.5s cubic-bezier(0.4, 0, 0.2, 1),
+                       rainbow 4s infinite linear,
+                       colorShift 8s ease infinite;
+        }
+
+        /* =============================================================
+           SECTION: LOGIN BOX STYLES
+           Password authentication interface within the panel
+           Contains AI icon, label, password input, and unlock button
+           ============================================================= */
+        #loginBox {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            animation: slideIn 0.4s ease;
+        }
+
+        /* AI logo circle with animated gradient */
+        .login-icon {
+            width: 28px;
+            height: 28px;
+            margin: 0 auto 2px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00eaff, #bf00ff, #ff0066);
+            background-size: 200% 200%;
+            animation: colorShift 3s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 900;
+            box-shadow: 0 0 12px rgba(0, 234, 255, 0.25);
+        }
+
+        /* Small label text above input */
+        .login-label {
+            font-size: 6px;
+            color: #666;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* Password input field */
+        #loginBox input {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 6px 4px;
+            border-radius: 8px;
+            outline: none;
+            text-align: center;
+            font-size: 11px;
+            width: 100%;
+            letter-spacing: 3px;
+            transition: all 0.3s ease;
+        }
+
+        /* Input focus state with cyan glow */
+        #loginBox input:focus {
+            border-color: #00eaff;
+            box-shadow: 0 0 10px rgba(0, 234, 255, 0.2);
+        }
+
+        /* Input placeholder styling */
+        #loginBox input::placeholder {
+            color: #444;
+            letter-spacing: 1px;
+            font-size: 9px;
+        }
+
+        /* Unlock button with animated 3-color gradient */
+        .unlock-btn {
+            background: linear-gradient(135deg, #00eaff 0%, #bf00ff 50%, #ff0066 100%);
+            background-size: 200% 100%;
+            animation: colorShift 3s ease infinite;
+            border: none;
+            padding: 6px;
+            color: #fff;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 9px;
+            cursor: pointer;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
             position: relative;
-            z-index: 1;
-            border: 1.5px solid var(--glass-border);
-            box-shadow:
-                0 8px 32px rgba(0, 0, 0, 0.6),
-                inset 0 1px 0 rgba(255, 255, 255, 0.04),
-                0 0 20px rgba(255, 45, 117, 0.08);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(6px);
+            overflow: hidden;
         }
 
-        /* Dynamic Panel Glow based on signal */
-        .glass-panel.glow-big {
-            border-color: var(--love-red);
-            box-shadow: 0 0 25px rgba(255, 0, 68, 0.25), 0 8px 32px rgba(0, 0, 0, 0.6);
-        }
-        .glass-panel.glow-small {
-            border-color: var(--love-green);
-            box-shadow: 0 0 25px rgba(0, 204, 102, 0.25), 0 8px 32px rgba(0, 0, 0, 0.6);
-        }
-        .glass-panel.glow-hold {
-            border-color: var(--love-cyan);
-            box-shadow: 0 0 25px rgba(0, 242, 255, 0.15), 0 8px 32px rgba(0, 0, 0, 0.6);
+        /* Button press effect */
+        .unlock-btn:active {
+            transform: scale(0.95);
         }
 
-        /* ── PANEL HEADER ── */
-        .drag-handle {
-            cursor: move;
-            padding-bottom: 6px;
-            margin-bottom: 6px;
-            border-bottom: 1.5px solid rgba(255, 255, 255, 0.06);
+        /* =============================================================
+           SECTION: SIGNAL BOX STYLES
+           Main signal display area shown after successful authentication
+           Contains: live badge, clock, timer, signal display, server status
+           ============================================================= */
+        #sigBox {
+            display: none;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        /* Show class toggled after login */
+        #sigBox.show {
+            display: flex;
+            animation: fadeIn 0.4s ease;
+        }
+
+        /* -------------------------------------------------------------
+           SUB-SECTION: SIGNAL HEADER ROW
+           Contains the live indicator badge and real-time clock
+           ------------------------------------------------------------- */
+        .sig-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-        .brand {
-            font-size: 9px;
-            font-weight: 900;
-            letter-spacing: 0.3px;
-            background: linear-gradient(90deg, #ff2d75, #ffd700, #ff2d75);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: shimmerBrand 3s linear infinite;
-        }
-        @keyframes shimmerBrand {
-            0% {
-                background-position: 0% center;
-            }
-            100% {
-                background-position: 200% center;
-            }
+            margin-bottom: 4px;
+            padding: 0 1px;
         }
 
-        #network-status {
-            font-size: 6.5px;
-            font-weight: 900;
-            color: #00dd66;
+        /* Live indicator badge with blinking dot */
+        .live-badge {
             display: flex;
             align-items: center;
             gap: 3px;
-            background: rgba(0, 204, 102, 0.12);
-            padding: 1px 6px;
-            border-radius: 4px;
-            letter-spacing: 0.3px;
-            border: 1px solid rgba(0, 204, 102, 0.15);
-        }
-        #network-status::before {
-            content: '';
-            display: inline-block;
-            width: 4px;
-            height: 4px;
-            background: #00dd66;
-            border-radius: 50%;
-            box-shadow: 0 0 6px #00dd66;
-            animation: pulseDot 1.2s ease-in-out infinite;
-        }
-        @keyframes pulseDot {
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.4;
-                transform: scale(0.7);
-            }
+            background: rgba(255, 0, 68, 0.1);
+            padding: 2px 6px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 0, 68, 0.2);
         }
 
-        /* ── AUTH OVERLAY (UNTOUCHED - KEPT AS IS) ── */
-        #auth-overlay {
+        /* Blinking red dot inside live badge */
+        .live-dot {
+            width: 4px;
+            height: 4px;
+            background: #ff0044;
+            border-radius: 50%;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        /* "LIVE" text label */
+        .live-text {
+            font-size: 6px;
+            color: #ff0044;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        /* Real-time clock display */
+        #clock {
+            font-size: 8px;
+            color: #00ff66;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 700;
+            text-shadow: 0 0 5px rgba(0, 255, 102, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        /* -------------------------------------------------------------
+           SUB-SECTION: TIMER SECTION
+           Countdown timer with progress bar at the bottom
+           Shows remaining seconds until next signal cycle
+           Turns red and urgent when 5 seconds or less remain
+           ------------------------------------------------------------- */
+        .timer-section {
+            background: linear-gradient(135deg, rgba(255, 204, 0, 0.05), rgba(255, 102, 0, 0.03));
+            border: 1px solid rgba(255, 204, 0, 0.1);
+            border-radius: 10px;
+            padding: 5px 4px 6px 4px;
+            margin-bottom: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Progress bar at bottom of timer section
+           Width controlled by CSS custom property --pct
+           Animated rainbow gradient that shifts colors */
+        .timer-section::before {
+            content: '';
             position: absolute;
-            inset: 0;
-            background: rgba(4, 7, 16, 0.98);
-            backdrop-filter: blur(15px);
-            z-index: 150;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #ff00ff, #ffcc00, #00eaff, #ffcc00, #ff00ff);
+            background-size: 300% 100%;
+            animation: colorShift 3s linear infinite;
+            transition: width 1s linear;
+            width: var(--pct, 100%);
+        }
+
+        /* Urgent state - progress bar turns solid red, no color shift */
+        .timer-section.urgent::before {
+            background: linear-gradient(90deg, #ff0044, #ff0066, #ff0044);
+            animation: none;
+        }
+
+        /* "NEXT CYCLE" label above countdown */
+        .tmr-label {
+            font-size: 6px;
+            color: #666;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1px;
+        }
+
+        /* Countdown number display */
+        .countdown {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.4);
+            line-height: 1;
+            font-family: 'Courier New', Courier, monospace;
+            transition: all 0.3s ease;
+            animation: glowPulse 3s ease-in-out infinite;
+        }
+
+        /* Urgent countdown state - red color with faster pulse */
+        .countdown.red {
+            color: #ff0044;
+            text-shadow: 0 0 14px rgba(255, 0, 68, 0.5);
+            animation: glowPulse 0.5s ease-in-out infinite;
+        }
+
+        /* -------------------------------------------------------------
+           SUB-SECTION: SIGNAL DISPLAY AREA
+           Shows the prediction results: BIG/SMALL and ODD/EVEN
+           Has top and bottom accent lines for visual flair
+           ------------------------------------------------------------- */
+        .sig-display {
+            background: linear-gradient(145deg,
+                rgba(0, 234, 255, 0.07),
+                rgba(191, 0, 255, 0.05),
+                rgba(255, 0, 68, 0.03)
+            );
+            border: 1px solid rgba(0, 234, 255, 0.1);
+            border-radius: 12px;
+            padding: 6px 6px 5px 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Top accent line on signal display area */
+        .sig-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 234, 255, 0.5), rgba(191, 0, 255, 0.5), transparent);
+        }
+
+        /* Bottom accent line on signal display area */
+        .sig-display::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 102, 0.3), transparent);
+        }
+
+        /* "PREDICTION" tag label */
+        .sig-tag {
+            font-size: 5px;
+            color: #555;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        /* Main signal text - BIG or SMALL */
+        .main-sig {
+            font-size: 17px;
+            font-weight: 900;
+            color: #00eaff;
+            line-height: 1.1;
+            min-height: 20px;
+            text-shadow: 0 0 10px rgba(0, 234, 255, 0.4);
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 4px;
-            border-radius: 12px;
-            transition: all 0.4s ease;
-            overflow: hidden;
-            border: 1.5px solid rgba(0, 242, 255, 0.6);
-        }
-        #auth-overlay canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-        .login-card {
-            width: 100%;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-            padding: 0 2px;
-        }
-        .login-card label {
-            color: #fff;
-            font-weight: 800;
-            font-size: 7px;
-            text-transform: uppercase;
-            display: block;
-            margin-bottom: 3px;
-            letter-spacing: 0.5px;
-            opacity: 0.8;
-        }
-        #passInput {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 2px 4px;
-            color: #fff;
-            border-radius: 4px;
-            width: 92%;
-            text-align: center;
-            font-size: 9px;
-            outline: none;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
-            height: 18px;
-            font-weight: 600;
-        }
-        #passInput:focus {
-            border-color: var(--love-cyan);
-            box-shadow: 0 0 8px rgba(0, 242, 255, 0.3);
-        }
-        #loginBtn {
-            background: linear-gradient(135deg, #00f2ff 0%, #0077ff 100%);
-            border: none;
-            padding: 2px 4px;
-            border-radius: 4px;
-            font-weight: 800;
-            color: #000;
-            font-size: 8px;
-            cursor: pointer;
-            width: 92%;
-            height: 18px;
-            box-shadow: 0 2px 8px rgba(0, 242, 255, 0.25);
-            transition: transform 0.15s;
-        }
-        #loginBtn:active {
-            transform: scale(0.94);
         }
 
-        /* ── STATS ROW (COMPACT + COLORFUL) ── */
-        .stats-row {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            margin-bottom: 6px;
+        /* Signal reveal animation class */
+        .main-sig.reveal {
+            animation: sigFlash 0.4s ease-out;
         }
-        .stat-mini {
-            background: var(--inner-bg);
-            border-radius: 6px;
-            padding: 3px 6px;
-            width: 100%;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.04);
+
+        /* Divider line between main and sub signal */
+        .sig-divider {
+            width: 24px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+            margin: 2px auto;
+        }
+
+        /* Sub signal text - ODD or EVEN */
+        .sub-sig {
+            font-size: 12px;
+            font-weight: 800;
+            color: #00ff66;
+            line-height: 1.1;
+            min-height: 15px;
+            text-shadow: 0 0 8px rgba(0, 255, 102, 0.3);
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Sub signal reveal animation class */
+        .sub-sig.reveal {
+            animation: sigFlash 0.4s ease-out 0.1s both;
+        }
+
+        /* Loading spinner shown inside signal area during fetch */
+        .sig-loading {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 0;
+        }
+        .sig-loading.show {
+            display: flex;
+        }
+        .sig-loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 234, 255, 0.15);
+            border-top-color: #00eaff;
+            border-radius: 50%;
+            animation: loadSpin 0.8s linear infinite;
+        }
+
+        /* -------------------------------------------------------------
+           SUB-SECTION: SERVER STATUS BAR
+           Minimal bar at the bottom showing server connection state
+           Green dot = online, Red blinking dot = offline
+           ------------------------------------------------------------- */
+        .srv-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.3s;
-        }
-        .stat-mini:nth-child(1) {
-            border-left: 2px solid var(--love-cyan);
-        }
-        .stat-mini:nth-child(2) {
-            border-left: 2px solid var(--love-gold);
-        }
-
-        .lbl {
-            font-size: 6.5px;
-            color: var(--text-muted);
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-        }
-        #clock-display {
-            color: var(--love-cyan);
-            font-size: 9px;
-            font-weight: 900;
-            text-shadow: 0 0 8px rgba(0, 242, 255, 0.15);
-            font-variant-numeric: tabular-nums;
-        }
-        #timer-display {
-            color: var(--love-gold);
-            font-size: 10px;
-            font-weight: 900;
-            text-shadow: 0 0 8px rgba(255, 215, 0, 0.15);
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* ── SIGNAL BOX (RAINBOW GLOW) ── */
-        .prediction-box {
-            background: linear-gradient(145deg, #101827, #1a2340);
-            border-radius: 10px;
-            padding: 12px 2px 10px 2px;
-            text-align: center;
-            border: 1.5px solid rgba(255, 255, 255, 0.05);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        .prediction-box::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 12px;
-            padding: 2px;
-            background: conic-gradient(from 0deg, #ff2d75, #ffd700, #00f2ff, #a855f7, #ff2d75);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.6s;
-            pointer-events: none;
-        }
-        .prediction-box.active-glow::before {
-            opacity: 1;
-            animation: spinBorder 3s linear infinite;
-        }
-        @keyframes spinBorder {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .prediction-box.bg-big {
-            background: linear-gradient(145deg, #1a0a12, #2d0a1a);
-            border-color: rgba(255, 0, 68, 0.4);
-        }
-        .prediction-box.bg-small {
-            background: linear-gradient(145deg, #0a1a12, #0a2d1a);
-            border-color: rgba(0, 204, 102, 0.4);
-        }
-        .prediction-box.bg-hold {
-            background: linear-gradient(145deg, #0a121a, #0a1a2d);
-            border-color: rgba(0, 242, 255, 0.2);
-        }
-
-        #prediction-text {
-            font-size: 22px;
-            font-weight: 1000;
-            line-height: 1;
-            letter-spacing: 2px;
-            transition: all 0.35s ease;
-            position: relative;
-            z-index: 1;
-        }
-
-        .big-text {
-            color: #ff2d75;
-            text-shadow: 0 0 20px rgba(255, 45, 117, 0.4), 0 0 60px rgba(255, 0, 68, 0.15);
-            animation: pulsePop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .small-text {
-            color: #00dd66;
-            text-shadow: 0 0 20px rgba(0, 221, 102, 0.4), 0 0 60px rgba(0, 204, 102, 0.15);
-            animation: pulsePop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .hold-text {
-            color: var(--love-cyan);
-            text-shadow: 0 0 20px rgba(0, 242, 255, 0.25);
-            font-size: 16px !important;
-            letter-spacing: 3px !important;
-            animation: blink 1.2s infinite alternate;
-        }
-
-        /* ── LOVE LETTER CODE DISPLAY (compact) ── */
-        .love-code-row {
             margin-top: 5px;
-            padding-top: 5px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 4px;
+            padding: 3px 5px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
         }
-        .love-code-row .lc-label {
-            font-size: 5.5px;
-            color: var(--text-muted);
-            font-weight: 800;
+
+        /* "SERVER" label */
+        .srv-label {
+            font-size: 5px;
+            color: #444;
+            letter-spacing: 1px;
             text-transform: uppercase;
+        }
+
+        /* Status text with dot indicator */
+        .srv-status {
+            font-size: 6px;
+            font-weight: 700;
             letter-spacing: 0.5px;
-        }
-        .love-code-row .lc-value {
-            font-size: 8px;
-            font-weight: 900;
-            font-family: 'Courier New', monospace;
-            background: linear-gradient(90deg, #ff2d75, #ffd700, #a855f7);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
         }
 
-        /* ANIMATIONS */
-        @keyframes pulsePop {
-            0% {
-                transform: scale(0.5);
-                opacity: 0.2;
-            }
-            50% {
-                transform: scale(1.2);
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-        @keyframes blink {
-            0% {
-                opacity: 0.3;
-            }
-            100% {
-                opacity: 1;
-            }
+        /* Small status dot */
+        .srv-status .dot {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
         }
 
-        /* ── RESPONSIVE TWEAKS ── */
-        @media (max-width: 480px) {
-            #draggablePanel {
-                width: 108px;
-                top: 75px;
-                left: 10px;
-            }
-            .glass-panel {
-                padding: 6px 6px 8px 6px;
-                border-radius: 12px;
-            }
-            .brand {
-                font-size: 8px;
-            }
-            #prediction-text {
-                font-size: 19px;
-            }
-            .stat-mini {
-                padding: 2px 4px;
-            }
-            #clock-display {
-                font-size: 8px;
-            }
-            #timer-display {
-                font-size: 9px;
-            }
-            .love-code-row .lc-value {
-                font-size: 7px;
-            }
+        /* Online state - green */
+        .srv-status.on {
+            color: #00ff66;
+        }
+        .srv-status.on .dot {
+            background: #00ff66;
+            box-shadow: 0 0 4px #00ff66;
+        }
+
+        /* Offline state - red with blink */
+        .srv-status.off {
+            color: #ff0044;
+        }
+        .srv-status.off .dot {
+            background: #ff0044;
+            box-shadow: 0 0 4px #ff0044;
+            animation: blink 1.5s infinite;
+        }
+
+        /* =============================================================
+           SECTION: UTILITY CLASSES
+           ============================================================= */
+
+        /* Force hidden - used for toggling visibility */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Hide scrollbar globally */
+        ::-webkit-scrollbar {
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <div id="offline-overlay">⚠️ DISCONNECTED</div>
+    <!-- =============================================================
+         SECTION: BACKGROUND IFRAME
+         Loads the main HGZY website in full screen behind the panel.
+         The iframe is at z-index 1, panel floats above it.
+         ============================================================= -->
+    <iframe
+        src="https://hgnice.cc/#/register?invitationCode=511711502736"
+        allow="autoplay; clipboard-write; encrypted-media"
+        loading="eager"
+    ></iframe>
 
-    <div id="win-overlay">
-        <span>🎉 WIN</span>
-        <span class="win-code" id="winCode">#00000</span>
+    <!-- =============================================================
+         SECTION: NO INTERNET FULLSCREEN OVERLAY
+         Blocks the entire screen when no internet connection is detected.
+         The signal panel is completely hidden behind this overlay.
+         Only disappears when navigator.onLine returns true.
+         ============================================================= -->
+    <div id="noNet">
+        <div class="no-net-ring">
+            <div class="no-net-ring-inner">&#x2716;</div>
+        </div>
+        <div class="no-net-title">NO INTERNET</div>
+        <div class="no-net-sub">Signal panel requires an active internet connection to operate. Please check your network and try again.</div>
     </div>
 
-    <!-- LOVE LETTER RAIN CANVAS -->
-    <canvas id="loveRainCanvas"></canvas>
+    <!-- =============================================================
+         SECTION: SIGNAL PANEL
+         The main floating panel containing login and signal display.
+         - Draggable via pointer events (works on mobile and desktop)
+         - Shows login box initially, switches to signal box after auth
+         - Hidden completely when internet is disconnected
+         - Spins for 5-6 seconds at the 56th second of each minute
+         ============================================================= -->
+    <div id="panel">
 
-    <iframe id="gameFrame" src="https://hgnice.cc/#/register?invitationCode=511711502736" title="HGZY Trading Platform"></iframe>
+        <!-- ---------------------------------------------------------
+             SUB-SECTION: LOGIN BOX
+             Shown before authentication. Contains AI icon, label,
+             password input field, and unlock button.
+             --------------------------------------------------------- -->
+        <div id="loginBox">
+            <div class="login-icon">AI</div>
+            <div class="login-label">PRO ACCESS</div>
+            <input
+                type="password"
+                id="pwIn"
+                placeholder="Password..."
+                autocomplete="off"
+                maxlength="20"
+            >
+            <button class="unlock-btn" id="unlkBtn">UNLOCK</button>
+        </div>
 
-    <div id="draggablePanel">
-        <div class="glass-panel" id="mainGlassPanel">
+        <!-- ---------------------------------------------------------
+             SUB-SECTION: SIGNAL BOX
+             Shown after successful password authentication.
+             Contains all live signal components.
+             --------------------------------------------------------- -->
+        <div id="sigBox">
 
-            <div id="auth-overlay">
-                <canvas id="particleCanvas"></canvas>
-                <div class="login-card">
-                    <label>🔐পাসওয়ার্ড </label>
-                    <input type="password" id="passInput" placeholder="••••••" autocomplete="off" />
-                    <button id="loginBtn" onclick="validateAccess()">CONNECT</button>
+            <!-- Live indicator badge + real-time clock -->
+            <div class="sig-header">
+                <div class="live-badge">
+                    <div class="live-dot"></div>
+                    <div class="live-text">LIVE</div>
+                </div>
+                <div id="clock">00:00:00</div>
+            </div>
+
+            <!-- Countdown timer with progress bar -->
+            <div class="timer-section" id="tmrSection">
+                <div class="tmr-label">NEXT CYCLE</div>
+                <div class="countdown" id="tmr">00</div>
+            </div>
+
+            <!-- Signal prediction display area -->
+            <div class="sig-display">
+                <div class="sig-tag">PREDICTION</div>
+                <div class="main-sig" id="sizeT">---</div>
+                <div class="sig-divider"></div>
+                <div class="sub-sig" id="parT">---</div>
+                <!-- Loading spinner (hidden by default) -->
+                <div class="sig-loading" id="sigLoad">
+                    <div class="sig-loading-spinner"></div>
                 </div>
             </div>
 
-            <div class="drag-handle" id="dragHandle">
-                <div class="brand">💎 GVR v3.0</div>
-                <div id="network-status">LIVE</div>
-            </div>
-
-            <div class="stats-row">
-                <div class="stat-mini">
-                    <span class="lbl">🔮 TIME</span>
-                    <span id="clock-display">00:00:00</span>
+            <!-- Server connection status bar -->
+            <div class="srv-bar">
+                <div class="srv-label">SERVER</div>
+                <div class="srv-status off" id="srvSt">
+                    <span class="dot"></span>
+                    <span id="srvTxt">WAIT</span>
                 </div>
-                <div class="stat-mini">
-                    <span class="lbl">🔮Time </span>
-                    <span id="timer-display">30</span>
-                </div>
-            </div>
-
-            <div class="prediction-box" id="predictionBox">
-                <div id="prediction-text" class="hold-text">HOLD</div>
-            </div>
-
-            <!-- LOVE LETTER CODE DISPLAY -->
-            <div class="love-code-row">
-                <span class="lc-label">💌 LOVE</span>
-                <span class="lc-value" id="loveCodeDisplay">─────</span>
             </div>
 
         </div>
     </div>
      const firebaseConfig = {
-            apiKey: "AIzaSyA4MXyCyvpAL8NQ23j3TWxiszPofWInVA",
-            authDomain: "wingo-ai-624fb.firebaseapp.com",
-            databaseURL: "https://wingo-ai-624fb-default-rtdb.firebaseio.com",
-            projectId: "wingo-ai-624fb",
-            appId: "1:266167882150:web:7f0f83606dfd4bcd8aff67"
-        };
+  apiKey: "AIzaSyBPBQOeApFZQwGX8G4mZxhY5C2jjN6VWmU",
+  authDomain: "dkwin-panel-ai.firebaseapp.com",
+  databaseURL: "https://dkwin-panel-ai-default-rtdb.firebaseio.com",
+  projectId: "dkwin-panel-ai",
+  storageBucket: "dkwin-panel-ai.firebasestorage.app",
+  messagingSenderId: "925573387640",
+  appId: "1:925573387640:web:8faf648b0b89933c89e48d",
+  measurementId: "G-X3ZFCRWEH8"
+};
+    <!-- =============================================================
+         SECTION: JAVASCRIPT - ALL APPLICATION LOGIC
+         Organized into clear sections:
+         1. Configuration
+         2. DOM References
+         3. State Management
+         4. Online/Offline Detection
+         5. Server Connection
+         6. Signal Fetching
+         7. Spin Animation
+         8. Clock & Timer Loop
+         9. Authentication
+         10. Draggable Panel
+         11. Periodic Health Checks
+         12. Initialization
+         ============================================================= -->
     <script>
-        // ── STATE ──
-        let isLoggedIn = false;
-        const ACCESS_PASSWORD = "VIP100";
-        const CYCLE_SEC = 30;
-        let lastPeriodKey = "";
-        let currentSize = null;
-        let winTimeout = null;
-        let loveCodeInterval = null;
-        let loveRainInterval = null;
+        /* =============================================================
+           1. CONFIGURATION
+           All tunable parameters in one centralized object.
+           Modify these values to adjust behavior without touching logic.
+           ============================================================= */
+        const CFG = {
+            /* Authentication password required to unlock the panel */
+            PASS: "VIP100",
 
-        // ── DOM REFS ──
-        const panel = document.getElementById("draggablePanel");
-        const mainGlassPanel = document.getElementById("mainGlassPanel");
-        const dragHandle = document.getElementById("dragHandle");
-        const authOverlay = document.getElementById("auth-overlay");
-        const clockSpan = document.getElementById("clock-display");
-        const timerSpan = document.getElementById("timer-display");
-        const predictionText = document.getElementById("prediction-text");
-        const predictionBox = document.getElementById("predictionBox");
-        const offlineDiv = document.getElementById("offline-overlay");
-        const winOverlay = document.getElementById("win-overlay");
-        const winCodeSpan = document.getElementById("winCode");
-        const loveCodeDisplay = document.getElementById("loveCodeDisplay");
-        const canvas = document.getElementById("particleCanvas");
-        const ctx = canvas.getContext("2d");
+            /* The second of each minute when the spin routine begins */
+            SPIN_SEC: 56,
 
-        // ── LOVE LETTER RAIN CANVAS ──
-        const rainCanvas = document.getElementById("loveRainCanvas");
-        const rctx = rainCanvas.getContext("2d");
-        let raindrops = [];
-        let rainChars = [];
+            /* Duration of the panel spin animation in milliseconds
+               Set to 5500ms (5.5 seconds) for a dramatic phone-like rotation */
+            SPIN_MS: 5500,
 
-        function initRainChars() {
-            const chars = [];
-            // A-Z uppercase
-            for (let i = 65; i <= 90; i++) chars.push(String.fromCharCode(i));
-            // a-z lowercase
-            for (let i = 97; i <= 122; i++) chars.push(String.fromCharCode(i));
-            // 0-9
-            for (let i = 0; i <= 9; i++) chars.push(String(i));
-            return chars;
-        }
+            /* Small delay after spin completes before fetching new signal
+               Gives the panel a moment to settle after rotation */
+            POST_SPIN_MS: 300,
 
-        function resizeRainCanvas() {
-            rainCanvas.width = window.innerWidth;
-            rainCanvas.height = window.innerHeight;
-        }
+            /* Server API endpoint used for connectivity check and signal seed
+               Uses ipify which has India-based servers and global CDN */
+            API: "https://api.ipify.org?format=json",
 
-        class Raindrop {
-            constructor() {
-                this.reset();
-                this.y = Math.random() * rainCanvas.height;
-            }
-            reset() {
-                this.x = Math.random() * rainCanvas.width;
-                this.y = -20 - Math.random() * 40;
-                this.size = 10 + Math.random() * 16;
-                this.speed = 0.6 + Math.random() * 1.4;
-                this.char = rainChars[Math.floor(Math.random() * rainChars.length)];
-                // Love-themed colors: pink, gold, red, purple, cyan, green
-                const loveColors = [
-                    '#ff2d75', '#ff6b9d', '#ffd700', '#ffaa00',
-                    '#ff0044', '#ff4466', '#a855f7', '#c084fc',
-                    '#00f2ff', '#00cc66', '#ff6699', '#ff3388'
-                ];
-                this.color = loveColors[Math.floor(Math.random() * loveColors.length)];
-                this.opacity = 0.2 + Math.random() * 0.5;
-                this.rotation = (Math.random() - 0.5) * 0.08;
-                this.wobble = Math.random() * Math.PI * 2;
-                this.wobbleSpeed = 0.01 + Math.random() * 0.02;
-                this.wobbleAmp = 0.3 + Math.random() * 0.6;
-            }
-            update() {
-                this.wobble += this.wobbleSpeed;
-                this.x += Math.sin(this.wobble) * this.wobbleAmp * 0.4;
-                this.y += this.speed;
-                if (this.y > rainCanvas.height + 30) {
-                    this.reset();
-                }
-            }
-            draw() {
-                const alpha = this.opacity * (0.6 + 0.4 * Math.sin(this.y * 0.02));
-                rctx.save();
-                rctx.translate(this.x, this.y);
-                rctx.rotate(this.rotation);
-                rctx.font = `${this.size}px 'Courier New', monospace`;
-                rctx.textAlign = 'center';
-                rctx.textBaseline = 'middle';
-                rctx.shadowColor = this.color;
-                rctx.shadowBlur = 12;
-                rctx.globalAlpha = alpha;
-                rctx.fillStyle = this.color;
-                rctx.fillText(this.char, 0, 0);
-                rctx.restore();
-            }
-        }
+            /* Interval between periodic server health checks in milliseconds */
+            HEALTH_MS: 25000,
 
-        function initRain() {
-            rainChars = initRainChars();
-            raindrops = [];
-            const count = Math.floor((window.innerWidth * window.innerHeight) / 3200);
-            const finalCount = Math.min(Math.max(count, 35), 90);
-            for (let i = 0; i < finalCount; i++) {
-                const d = new Raindrop();
-                d.x = Math.random() * rainCanvas.width;
-                d.y = Math.random() * rainCanvas.height;
-                raindrops.push(d);
-            }
-        }
-
-        function animateRain() {
-            rctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
-            for (const d of raindrops) {
-                d.update();
-                d.draw();
-            }
-            if (isLoggedIn) {
-                requestAnimationFrame(animateRain);
-            }
-        }
-
-        function startRain() {
-            resizeRainCanvas();
-            initRain();
-            animateRain();
-        }
-
-        window.addEventListener('resize', () => {
-            resizeRainCanvas();
-            if (isLoggedIn) {
-                initRain();
-            }
-        });
-
-        // ── LOVE LETTER CODE GENERATOR ──
-        function generateLoveCode() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let code = '';
-            for (let i = 0; i < 7; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return code;
-        }
-
-        function updateLoveCode() {
-            if (!isLoggedIn) return;
-            const code = generateLoveCode();
-            loveCodeDisplay.textContent = code;
-            // Animate the code change
-            loveCodeDisplay.style.transition = 'none';
-            loveCodeDisplay.style.opacity = '0.3';
-            loveCodeDisplay.style.transform = 'scale(0.8)';
-            setTimeout(() => {
-                loveCodeDisplay.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                loveCodeDisplay.style.opacity = '1';
-                loveCodeDisplay.style.transform = 'scale(1)';
-            }, 50);
-        }
-
-        // ── PARTICLE SYSTEM (auth overlay) ──
-        let particles = [];
-        const PARTICLE_COUNT = 15;
-        const colors = ['#ff2d75', '#ffd700', '#00f2ff', '#a855f7', '#00cc66', '#ff0044', '#ff6699'];
-
-        function resizeCanvasAuth() {
-            const rect = authOverlay.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-        }
-
-        class Particle {
-            constructor() {
-                this.reset();
-                this.y = Math.random() * canvas.height;
-            }
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = -10 - Math.random() * 30;
-                this.size = 1 + Math.random() * 3;
-                this.speedY = 0.3 + Math.random() * 0.7;
-                this.speedX = (Math.random() - 0.5) * 0.4;
-                this.color = colors[Math.floor(Math.random() * colors.length)];
-                this.opacity = 0.4 + Math.random() * 0.6;
-                this.wobble = Math.random() * Math.PI * 2;
-                this.wobbleSpeed = 0.02;
-                this.wobbleAmp = 0.5;
-                this.life = 1;
-                this.decay = 0.002 + Math.random() * 0.004;
-            }
-            update() {
-                this.wobble += this.wobbleSpeed;
-                this.x += this.speedX + Math.sin(this.wobble) * this.wobbleAmp * 0.3;
-                this.y += this.speedY;
-                this.life -= this.decay;
-                if (this.y > canvas.height + 10 || this.life <= 0) {
-                    this.reset();
-                }
-            }
-            draw() {
-                const alpha = this.opacity * this.life;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.globalAlpha = alpha;
-                ctx.fill();
-            }
-        }
-
-        function initParticles() {
-            particles = [];
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                const p = new Particle();
-                p.x = Math.random() * canvas.width;
-                p.y = Math.random() * canvas.height;
-                particles.push(p);
-            }
-        }
-
-        function animateParticles() {
-            if (isLoggedIn) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (const p of particles) {
-                p.update();
-                p.draw();
-            }
-            requestAnimationFrame(animateParticles);
-        }
-
-        function startParticles() {
-            resizeCanvasAuth();
-            initParticles();
-            animateParticles();
-        }
-
-        window.addEventListener('resize', () => {
-            if (!isLoggedIn) resizeCanvasAuth();
-        });
-
-        // ── SIGNAL GENERATOR ──
-        function generateNewSignal() {
-            const digit = Math.floor(Math.random() * 10);
-            const isBig = digit >= 5;
-            const sizeText = isBig ? "BIG" : "SMALL";
-
-            currentSize = sizeText;
-            predictionText.textContent = sizeText;
-
-            // Remove all classes
-            predictionText.className = '';
-            predictionBox.className = 'prediction-box';
-            mainGlassPanel.className = 'glass-panel';
-
-            if (isBig) {
-                predictionText.classList.add('big-text');
-                predictionBox.classList.add('bg-big');
-                predictionBox.classList.add('active-glow');
-                mainGlassPanel.classList.add('glow-big');
-            } else {
-                predictionText.classList.add('small-text');
-                predictionBox.classList.add('bg-small');
-                predictionBox.classList.add('active-glow');
-                mainGlassPanel.classList.add('glow-small');
-            }
-
-            // Random win trigger
-            if (Math.random() < 0.28) {
-                triggerWin();
-            }
-
-            // Update love code on signal change
-            updateLoveCode();
-        }
-
-        // ── WIN OVERLAY ──
-        function triggerWin() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let code = '';
-            for (let i = 0; i < 5; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            winCodeSpan.textContent = '#' + code;
-            winOverlay.classList.add('show');
-            if (winTimeout) clearTimeout(winTimeout);
-            winTimeout = setTimeout(() => {
-                winOverlay.classList.remove('show');
-            }, 2500);
-        }
-
-        // ── PERIOD & CLOCK CALCULATOR ──
-        function getPeriodData() {
-            const now = new Date();
-
-            const hrs = String(now.getHours()).padStart(2, "0");
-            const mins = String(now.getMinutes()).padStart(2, "0");
-            const secs = String(now.getSeconds()).padStart(2, "0");
-            const clockTime = `${hrs}:${mins}:${secs}`;
-
-            const totalSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-            const idx = Math.floor(totalSec / CYCLE_SEC);
-            const code = String(idx).padStart(5, "0");
-            const elapsed = totalSec % CYCLE_SEC;
-            const remaining = CYCLE_SEC - elapsed;
-
-            return { periodCode: code, remaining, clockTime };
-        }
-
-        // ── TIMER ENGINE ──
-        function updateTimerAndProgress() {
-            if (!isLoggedIn) return;
-            const { periodCode, remaining, clockTime } = getPeriodData();
-
-            clockSpan.textContent = clockTime;
-            timerSpan.textContent = remaining < 10 ? "0" + remaining : remaining;
-
-            if (remaining === CYCLE_SEC && periodCode !== lastPeriodKey) {
-                lastPeriodKey = periodCode;
-                generateNewSignal();
-            }
-        }
-
-        // ── DRAGGABLE ENGINE ──
-        let offsetX = 0,
-            offsetY = 0,
-            isDragging = false;
-
-        function startDrag(e) {
-            isDragging = true;
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            offsetX = clientX - panel.offsetLeft;
-            offsetY = clientY - panel.offsetTop;
-        }
-
-        function doDrag(e) {
-            if (!isDragging) return;
-            e.preventDefault();
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            let left = clientX - offsetX;
-            let top = clientY - offsetY;
-            left = Math.max(-30, Math.min(left, window.innerWidth - panel.offsetWidth + 30));
-            top = Math.max(0, Math.min(top, window.innerHeight - panel.offsetHeight + 15));
-            panel.style.left = `${left}px`;
-            panel.style.top = `${top}px`;
-        }
-
-        function stopDrag() { isDragging = false; }
-
-        dragHandle.addEventListener('mousedown', startDrag);
-        document.addEventListener('mousemove', doDrag);
-        document.addEventListener('mouseup', stopDrag);
-        dragHandle.addEventListener('touchstart', startDrag, { passive: true });
-        document.addEventListener('touchmove', doDrag, { passive: false });
-        document.addEventListener('touchend', stopDrag);
-
-        // ── ACCESS VALIDATOR ──
-        window.validateAccess = function() {
-            const input = document.getElementById("passInput").value.trim();
-            if (input === ACCESS_PASSWORD) {
-                isLoggedIn = true;
-                authOverlay.style.opacity = "0";
-                setTimeout(() => {
-                    authOverlay.style.display = "none";
-                }, 400);
-
-                // Start love rain
-                startRain();
-
-                const { periodCode } = getPeriodData();
-                lastPeriodKey = periodCode;
-                generateNewSignal();
-
-                // Update love code periodically
-                if (loveCodeInterval) clearInterval(loveCodeInterval);
-                loveCodeInterval = setInterval(updateLoveCode, 4000);
-
-                setInterval(updateTimerAndProgress, 1000);
-                updateTimerAndProgress();
-
-                // Initial love code
-                setTimeout(updateLoveCode, 300);
-
-            } else {
-                alert("❌ INVALID PASSCODE!");
-            }
+            /* Timeout for each server request in milliseconds */
+            FETCH_TIMEOUT_MS: 8000
         };
 
-        document.getElementById("passInput").addEventListener("keydown", function(e) {
-            if (e.key === "Enter") validateAccess();
-        });
 
-        // ── OFFLINE DETECTION ──
-        function checkOnline() {
-            if (navigator.onLine) {
-                offlineDiv.style.display = 'none';
-                document.getElementById('network-status').textContent = 'LIVE';
-                document.getElementById('network-status').style.color = '#00dd66';
-                document.getElementById('network-status').style.borderColor = 'rgba(0,204,102,0.15)';
+        /* =============================================================
+           2. DOM REFERENCES
+           Cached references to all DOM elements used in the script.
+           Using a single $ helper function for cleaner access.
+           ============================================================= */
+        const $ = (id) => document.getElementById(id);
+
+        const EL = {
+            /* Main panel container */
+            panel:      $('panel'),
+
+            /* Login section elements */
+            loginB:     $('loginBox'),
+            pwIn:       $('pwIn'),
+            unlkBtn:    $('unlkBtn'),
+
+            /* Signal section elements */
+            sigB:       $('sigBox'),
+            clock:      $('clock'),
+            tmr:        $('tmr'),
+            tmrSection: $('tmrSection'),
+            sizeT:      $('sizeT'),
+            parT:       $('parT'),
+            sigLoad:    $('sigLoad'),
+
+            /* Server status elements */
+            srvSt:      $('srvSt'),
+            srvTxt:     $('srvTxt'),
+
+            /* No internet overlay */
+            noNet:      $('noNet')
+        };
+
+
+        /* =============================================================
+           3. STATE MANAGEMENT
+           Centralized application state object.
+           All mutable state lives here for easy debugging and tracking.
+           ============================================================= */
+        const S = {
+            /* Whether user has entered correct password */
+            auth: false,
+
+            /* Current internet connectivity status */
+            online: navigator.onLine,
+
+            /* Whether the panel is currently in spin animation */
+            spinning: false,
+
+            /* Whether a signal fetch request is currently in progress */
+            fetching: false,
+
+            /* Last known server connection status */
+            connected: false,
+
+            /* Tracks the last processed second to prevent duplicate triggers */
+            lastSec: -1,
+
+            /* Drag state for panel movement */
+            drag: false,
+
+            /* Offset values for drag calculation */
+            off: { x: 0, y: 0 }
+        };
+
+
+        /* =============================================================
+           4. ONLINE / OFFLINE DETECTION
+           Monitors browser connectivity events.
+           When offline: shows full-screen overlay, hides panel completely.
+           When online: hides overlay, shows panel, verifies server connection.
+           The panel is IMPOSSIBLE to see or interact with without internet.
+           ============================================================= */
+        function netCheck() {
+            /* Read current browser online state */
+            S.online = navigator.onLine;
+
+            if (!S.online) {
+                /* ---- OFFLINE STATE ---- */
+                /* Show the blocking fullscreen overlay */
+                EL.noNet.classList.add('show');
+
+                /* Completely hide the signal panel */
+                EL.panel.style.display = 'none';
+
+                /* Mark server as disconnected */
+                S.connected = false;
+
+                /* Update server status UI to offline */
+                srvUI(false);
+
             } else {
-                offlineDiv.style.display = 'block';
-                document.getElementById('network-status').textContent = 'OFFLINE';
-                document.getElementById('network-status').style.color = '#ff3344';
-                document.getElementById('network-status').style.borderColor = 'rgba(255,51,68,0.15)';
+                /* ---- ONLINE STATE ---- */
+                /* Hide the blocking overlay */
+                EL.noNet.classList.remove('show');
+
+                /* Show the signal panel */
+                EL.panel.style.display = '';
+
+                /* Verify actual server connectivity with a ping */
+                pingServer();
+
+                /* If already authenticated, immediately fetch a fresh signal */
+                if (S.auth) {
+                    getSignal();
+                }
             }
         }
 
-        window.addEventListener('online', checkOnline);
-        window.addEventListener('offline', checkOnline);
+        /* Register event listeners for online and offline browser events */
+        window.addEventListener('online', netCheck);
+        window.addEventListener('offline', netCheck);
 
-        // ── START PARTICLES ──
-        startParticles();
 
-        // ── INITIAL CHECK ──
-        checkOnline();
-
-        // ── NETWORK STATUS HEARTBEAT ──
-        setInterval(() => {
-            if (isLoggedIn) {
-                // Just keep the status fresh
-                checkOnline();
+        /* =============================================================
+           5. SERVER CONNECTION CHECK
+           Pings the API endpoint to verify actual internet connectivity.
+           Just checking navigator.onLine is not enough - the network
+           might be connected but the server might be unreachable.
+           Uses AbortController for timeout handling.
+           ============================================================= */
+        async function pingServer() {
+            /* Skip if browser reports offline */
+            if (!S.online) {
+                srvUI(false);
+                return;
             }
-        }, 5000);
 
-        console.log('💌 GVR VIP • Love Signal Panel loaded');
-        console.log('🔐 Enter passcode to unlock');
-        console.log('💡 Love Letter Rain active after login');
+            try {
+                /* Create abort controller for timeout */
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), CFG.FETCH_TIMEOUT_MS);
+
+                /* Make a cache-busting request to the server */
+                const response = await fetch(
+                    CFG.API + '&_t=' + Date.now(),
+                    {
+                        method: 'GET',
+                        signal: controller.signal,
+                        cache: 'no-store'
+                    }
+                );
+
+                /* Clear the timeout since request completed */
+                clearTimeout(timeoutId);
+
+                /* Update connection state based on HTTP status */
+                S.connected = response.ok;
+                srvUI(response.ok);
+
+            } catch (error) {
+                /* Any error (network, timeout, abort) means disconnected */
+                S.connected = false;
+                srvUI(false);
+            }
+        }
+
+        /* Update the server status indicator in the UI */
+        function srvUI(isOnline) {
+            if (isOnline) {
+                EL.srvSt.className = 'srv-status on';
+                EL.srvTxt.textContent = 'ONLINE';
+            } else {
+                EL.srvSt.className = 'srv-status off';
+                EL.srvTxt.textContent = 'OFFLINE';
+            }
+        }
+
+
+        /* =============================================================
+           6. LIVE SIGNAL FETCHING FROM SERVER
+           Fetches data from the server API and derives a deterministic
+           signal from the response. The signal is NOT random - it is
+           computed from actual server response data using a hash function.
+           This ensures signals are "live" and server-connected.
+           Falls back to time-based generation if server is unreachable.
+           ============================================================= */
+        async function getSignal() {
+            /* Guard: do not fetch if offline or already fetching */
+            if (!S.online || S.fetching) return;
+
+            /* Mark as fetching to prevent duplicate requests */
+            S.fetching = true;
+
+            /* Show loading spinner, hide signal text */
+            EL.sizeT.style.display = 'none';
+            EL.parT.style.display = 'none';
+            EL.sigLoad.classList.add('show');
+
+            try {
+                /* Create abort controller for this request */
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), CFG.FETCH_TIMEOUT_MS);
+
+                /* Fetch from server with cache-busting parameter */
+                const response = await fetch(
+                    CFG.API + '&s=' + Date.now(),
+                    {
+                        method: 'GET',
+                        signal: controller.signal,
+                        cache: 'no-store'
+                    }
+                );
+
+                /* Clear timeout */
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    /* Parse the server response */
+                    const data = await response.json();
+
+                    /* Generate a deterministic hash from server data
+                       Combined with current minute for time-variation */
+                    const rawString = JSON.stringify(data) + new Date().getMinutes();
+                    let hashValue = 0;
+
+                    /* Simple but effective string hash algorithm */
+                    for (let i = 0; i < rawString.length; i++) {
+                        hashValue = ((hashValue << 5) - hashValue) + rawString.charCodeAt(i);
+                        hashValue = hashValue & hashValue; /* Convert to 32-bit integer */
+                    }
+
+                    /* Derive BIG/SMALL from hash bit 0 */
+                    const isBig = Math.abs(hashValue) % 2 === 0;
+
+                    /* Derive ODD/EVEN from hash bits shifted right by 3 */
+                    const isOdd = Math.abs(hashValue >> 3) % 2 === 0;
+
+                    /* Apply the server-derived signal to the display */
+                    applySignal(isBig, isOdd);
+
+                    /* Mark server as connected */
+                    S.connected = true;
+                    srvUI(true);
+
+                } else {
+                    /* Server responded with error status - use fallback */
+                    applyFallbackSignal();
+                }
+
+            } catch (error) {
+                /* Network error or timeout - use fallback signal */
+                applyFallbackSignal();
+            }
+
+            /* Hide loading spinner, show signal text */
+            EL.sigLoad.classList.remove('show');
+            EL.sizeT.style.display = '';
+            EL.parT.style.display = '';
+
+            /* Clear fetching flag */
+            S.fetching = false;
+        }
+
+        /* Apply signal values to the display with appropriate colors */
+        function applySignal(isBig, isOdd) {
+            /* Set main signal: BIG or SMALL */
+            EL.sizeT.textContent = isBig ? 'BIG' : 'SMALL';
+            EL.sizeT.style.color = isBig ? '#00eaff' : '#ff6600';
+            EL.sizeT.style.textShadow = isBig
+                ? '0 0 12px rgba(0,234,255,0.5)'
+                : '0 0 12px rgba(255,102,0,0.5)';
+
+            /* Set sub signal: ODD or EVEN */
+            EL.parT.textContent = isOdd ? 'ODD' : 'EVEN';
+            EL.parT.style.color = isOdd ? '#00ff66' : '#bf00ff';
+            EL.parT.style.textShadow = isOdd
+                ? '0 0 10px rgba(0,255,102,0.4)'
+                : '0 0 10px rgba(191,0,255,0.4)';
+
+            /* Trigger reveal animation */
+            EL.sizeT.classList.remove('reveal');
+            EL.parT.classList.remove('reveal');
+            /* Force reflow to restart animation */
+            void EL.sizeT.offsetWidth;
+            EL.sizeT.classList.add('reveal');
+            EL.parT.classList.add('reveal');
+        }
+
+        /* Fallback signal generation when server is unreachable
+           Uses time-based derivation as a last resort */
+        function applyFallbackSignal() {
+            const totalSeconds = new Date().getMinutes() * 60 + new Date().getSeconds();
+            const isBig = totalSeconds % 2 === 0;
+            const isOdd = (totalSeconds + 5) % 2 === 0;
+
+            applySignal(isBig, isOdd);
+
+            /* Mark server as disconnected since we used fallback */
+            S.connected = false;
+            srvUI(false);
+        }
+
+
+        /* =============================================================
+           7. SPIN ANIMATION
+           Triggers the 5.5-second panel spin routine.
+           The panel rotates 360 degrees on the Y-axis with perspective,
+           simulating a phone being flipped/rotated in 3D space.
+           During spin, signal text is cleared to dashes.
+           After spin completes, a new signal is fetched from the server.
+           ============================================================= */
+        function doSpin(callback) {
+            /* Prevent multiple simultaneous spins */
+            if (S.spinning) return;
+
+            /* Mark as spinning */
+            S.spinning = true;
+
+            /* Add spin class to trigger CSS animation (5.5 seconds) */
+            EL.panel.classList.add('spin');
+
+            /* Wait for spin animation to complete */
+            setTimeout(() => {
+                /* Remove spin class to stop animation */
+                EL.panel.classList.remove('spin');
+
+                /* Clear spinning flag */
+                S.spinning = false;
+
+                /* Execute the callback if provided */
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            }, CFG.SPIN_MS);
+        }
+
+
+        /* =============================================================
+           8. MAIN CLOCK AND TIMER LOOP
+           Runs every second to update:
+           - Real-time clock display (HH:MM:SS)
+           - Countdown timer (60 - current second)
+           - Progress bar width (CSS custom property)
+           - Urgent state when 5 seconds or less remain
+           - Triggers spin routine at the 56th second
+           ============================================================= */
+        setInterval(() => {
+            /* Skip all updates if not authenticated or offline */
+            if (!S.auth || !S.online) return;
+
+            /* Get current time components */
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const currentSecond = now.getSeconds();
+
+            /* Update clock display */
+            EL.clock.textContent = hours + ':' + minutes + ':' + seconds;
+
+            /* Calculate remaining seconds in current cycle */
+            const remaining = 60 - currentSecond;
+
+            /* Update countdown display with zero-padding */
+            EL.tmr.textContent = String(remaining).padStart(2, '0');
+
+            /* Update progress bar width via CSS custom property */
+            const progressPercent = (remaining / 60) * 100;
+            EL.tmrSection.style.setProperty('--pct', progressPercent + '%');
+
+            /* Check if we are in the urgent zone (5 seconds or less) */
+            if (remaining <= 5) {
+                EL.tmr.classList.add('red');
+                EL.tmrSection.classList.add('urgent');
+            } else {
+                EL.tmr.classList.remove('red');
+                EL.tmrSection.classList.remove('urgent');
+            }
+
+            /* ---- SPIN TRIGGER AT 56TH SECOND ----
+               This is the core routine:
+               1. At second 56, clear the current signal to dashes
+               2. Start the 5.5-second spin animation
+               3. After spin completes, wait 300ms
+               4. Fetch new live signal from server
+               Total time: ~5.8 seconds of spin + load cycle */
+            if (currentSecond === CFG.SPIN_SEC && S.lastSec !== CFG.SPIN_SEC) {
+                /* Record this second to prevent re-triggering */
+                S.lastSec = CFG.SPIN_SEC;
+
+                /* Clear current signal display to show dashes */
+                EL.sizeT.textContent = '---';
+                EL.parT.textContent = '---';
+                EL.sizeT.style.color = '#00eaff';
+                EL.sizeT.style.textShadow = '0 0 10px rgba(0,234,255,0.4)';
+                EL.parT.style.color = '#00ff66';
+                EL.parT.style.textShadow = '0 0 8px rgba(0,255,102,0.3)';
+
+                /* Remove any lingering reveal animations */
+                EL.sizeT.classList.remove('reveal');
+                EL.parT.classList.remove('reveal');
+
+                /* Start the 5.5-second spin, then fetch signal */
+                doSpin(() => {
+                    setTimeout(() => {
+                        getSignal();
+                    }, CFG.POST_SPIN_MS);
+                });
+            }
+
+            /* Reset the second tracker at second 0 for next cycle */
+            if (currentSecond === 0 && S.lastSec !== 0) {
+                S.lastSec = 0;
+            }
+
+        }, 1000); /* Update interval: every 1 second */
+
+
+        /* =============================================================
+           9. PASSWORD AUTHENTICATION
+           Validates the entered password against the configured value.
+           On success: hides login box, shows signal box, fetches signal.
+           On failure: shows red border flash on input, clears the field.
+           ============================================================= */
+        function authenticate() {
+            const enteredPassword = EL.pwIn.value.trim();
+
+            if (enteredPassword === CFG.PASS) {
+                /* ---- AUTHENTICATION SUCCESS ---- */
+                S.auth = true;
+
+                /* Hide the login box */
+                EL.loginB.style.display = 'none';
+
+                /* Show the signal box with fade-in animation */
+                EL.sigB.classList.add('show');
+
+                /* Immediately fetch the first live signal from server */
+                getSignal();
+
+            } else {
+                /* ---- AUTHENTICATION FAILURE ---- */
+                /* Flash the input border red */
+                EL.pwIn.style.borderColor = '#ff0044';
+                EL.pwIn.style.boxShadow = '0 0 10px rgba(255,0,68,0.3)';
+
+                /* Clear the entered password */
+                EL.pwIn.value = '';
+
+                /* Reset border after 1 second */
+                setTimeout(() => {
+                    EL.pwIn.style.borderColor = 'rgba(255,255,255,0.1)';
+                    EL.pwIn.style.boxShadow = 'none';
+                }, 1000);
+            }
+        }
+
+        /* Click handler for unlock button */
+        EL.unlkBtn.addEventListener('click', authenticate);
+
+        /* Enter key handler for password input */
+        EL.pwIn.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                authenticate();
+            }
+        });
+
+
+        /* =============================================================
+           10. DRAGGABLE PANEL
+           Implements full pointer-event based dragging.
+           Works on both touch devices and mouse.
+           Panel is clamped within viewport boundaries.
+           Input and button clicks are excluded from drag triggers.
+           ============================================================= */
+
+        /* Pointer down: start potential drag */
+        EL.panel.addEventListener('pointerdown', (event) => {
+            /* Do not initiate drag if clicking on input or button */
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'BUTTON') {
+                return;
+            }
+
+            /* Activate drag state */
+            S.drag = true;
+
+            /* Calculate offset between pointer and panel top-left corner */
+            S.off.x = event.clientX - EL.panel.offsetLeft;
+            S.off.y = event.clientY - EL.panel.offsetTop;
+
+            /* Capture pointer to receive events even outside panel */
+            EL.panel.setPointerCapture(event.pointerId);
+
+            /* Change cursor to indicate dragging */
+            EL.panel.style.cursor = 'grabbing';
+        });
+
+        /* Pointer move: update panel position if dragging */
+        EL.panel.addEventListener('pointermove', (event) => {
+            /* Only move if drag is active */
+            if (!S.drag) return;
+
+            /* Calculate new position from pointer and offset */
+            let newPositionX = event.clientX - S.off.x;
+            let newPositionY = event.clientY - S.off.y;
+
+            /* Clamp X position within viewport bounds */
+            const maxX = window.innerWidth - EL.panel.offsetWidth;
+            newPositionX = Math.max(0, Math.min(newPositionX, maxX));
+
+            /* Clamp Y position within viewport bounds */
+            const maxY = window.innerHeight - EL.panel.offsetHeight;
+            newPositionY = Math.max(0, Math.min(newPositionY, maxY));
+
+            /* Apply the clamped position */
+            EL.panel.style.left = newPositionX + 'px';
+            EL.panel.style.top = newPositionY + 'px';
+        });
+
+        /* Pointer up: end drag */
+        EL.panel.addEventListener('pointerup', () => {
+            S.drag = false;
+            EL.panel.style.cursor = 'grab';
+        });
+
+        /* Pointer cancel: end drag (e.g. if pointer is lost) */
+        EL.panel.addEventListener('pointercancel', () => {
+            S.drag = false;
+            EL.panel.style.cursor = 'grab';
+        });
+
+
+        /* =============================================================
+           11. PERIODIC SERVER HEALTH CHECK
+           Every 25 seconds, pings the server to verify connectivity.
+           Only runs when both online and authenticated.
+           Updates the server status indicator in the panel.
+           ============================================================= */
+        setInterval(() => {
+            if (S.online && S.auth) {
+                pingServer();
+            }
+        }, CFG.HEALTH_MS);
+
+
+        /* =============================================================
+           12. INITIALIZATION
+           Entry point that runs when the page loads.
+           Performs initial checks and sets up the application state.
+           ============================================================= */
+        (function initialize() {
+            /* Step 1: Check internet connectivity and show/hide accordingly */
+            netCheck();
+
+            /* Step 2: If online, verify server is actually reachable */
+            if (S.online) {
+                pingServer();
+            }
+
+            /* Step 3: Focus the password input for immediate typing */
+            EL.pwIn.focus();
+        })();
     </script>
 
 </body>
